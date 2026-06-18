@@ -43,7 +43,9 @@ def main() -> None:
         sys.exit(0)
 
     text = spec.read_text(encoding="utf-8", errors="ignore")
-    if "frozen" not in text:
+    status_line = next((line for line in text.splitlines() if line.strip().lower().startswith(("상태:", "status:"))), "")
+    normalized_status = status_line.replace("`", "").lower()
+    if "frozen" not in normalized_status or "draft" in normalized_status:
         print("⚠️ spec-first: SPEC.md 가 아직 draft 입니다. 인수 기준을 확정(frozen)한 뒤 구현하세요.")
     sys.exit(0)
 

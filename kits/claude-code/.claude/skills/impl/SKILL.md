@@ -1,5 +1,5 @@
 ---
-description: "SPEC.md 기준으로 모델을 선택해 구현을 수행하는 커맨드"
+description: "SPEC.md 기준으로 모델을 선택해 구현을 수행하는 스킬"
 aliases: [implement, 구현]
 ---
 
