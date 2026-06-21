@@ -1,0 +1,9 @@
+{
+  "name": "telos",
+  "version": "0.2.0",
+  "description": "Spec-first development workflow using SPEC.md as the implementation contract.",
+  "author": {
+    "name": "Telos"
+  },
+  "repository": "https://github.com/jaeilssss/telos"
+}

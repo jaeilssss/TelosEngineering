@@ -1,109 +1,98 @@
 # Telos
 
-Spec-first kit for coding agents.
+Spec-first plugins for Codex and Claude Code.
 
-Telos는 우로보로스의 **명세 우선** 방법론 핵심을 Claude Code와 Codex에 설치하기 쉽게 묶은 키트다.
-
-## 구조
-
-```
-kits/
-  claude-code/   Claude Code 전역 설치판
-  codex/         Codex 전역 플러그인 설치판
-```
+Telos는 요구사항을 `SPEC.md` 계약으로 확정한 뒤 구현하고 평가하는 워크플로를 제공한다.
 
 ## 설치
 
-원하는 대상만 설치한다.
+Python 3.10 이상이 필요하다.
 
 ```bash
-bash install.sh claude
+python3 -m pip install telos-kit
+telos install codex
+telos install claude
+telos install all
+```
+
+기존 GitHub 설치 명령도 호환 래퍼로 유지한다.
+
+```bash
 bash install.sh codex
+bash install.sh claude
 bash install.sh all
 ```
 
-## Claude Code 설치판
+업데이트는 패키지를 갱신한 뒤 원하는 키트를 다시 설치한다.
 
-`bash install.sh claude`는 Claude Code 사용자 레벨(`~/.claude/`)에 설치한다. 어떤 레포도
-직접 수정하지 않고 회사·개인 프로젝트 전부에 자동 적용된다.
+```bash
+python3 -m pip install --upgrade telos-kit
+telos install all
+```
+
+## Claude Code
+
+Claude용 Telos는 `telos@telos-kit` 사용자 플러그인으로 설치된다. 설치 CLI는 로컬
+marketplace를 `~/.telos/claude-marketplace`에 만들고 Claude Code에 등록한다.
+
+```text
+/telos:spec   소크라테스 인터뷰, 자동 모호성 점검, SPEC.md frozen
+/telos:impl   frozen SPEC.md 기준 구현
+/telos:eval   인수 기준 평가
+```
+
+플러그인은 두 개의 훅을 포함한다.
+
+- `SessionStart`: Telos spec-first 규칙을 세션 컨텍스트에 추가
+- `PostToolUse (Write|Edit)`: 코드 편집 후 `SPEC.md`가 없거나 draft이면 경고
+
+훅 정의는 `~/.claude/settings.json`에 복사하지 않는다. Claude는 사용자 설정에 플러그인
+활성화 상태만 기록한다. 이전 Telos 전역 설치가 있으면 Telos 소유 파일, CLAUDE.md 마커,
+legacy `spec_gate.py` 훅만 제거하고 다른 사용자 설정은 보존한다.
+
+## Codex
+
+Codex용 Telos는 `telos@personal` 사용자 플러그인으로 설치된다.
+
+```text
+$spec   요구사항 인터뷰와 자동 모호성 점검
+$impl   frozen SPEC.md 기준 구현
+$eval   인수 기준 평가
+```
+
+플러그인의 `PostToolUse (Edit|Write)` 훅은 코드 편집 후 `SPEC.md` 상태를 확인한다. 최초
+설치나 훅 변경 후 새 Codex 스레드에서 `/hooks`를 열어 Telos 훅을 검토하고 신뢰해야 한다.
+훅은 경고만 표시하며 편집을 차단하지 않는다.
 
 설치 위치:
 
 ```text
-~/.claude/
-  CLAUDE.md                 전역 규칙 (모든 프로젝트에 적용)
-  SPEC.template.md          계약 문서 템플릿
-  skills/spec/SKILL.md      /spec  — 소크라테스식 인터뷰
-  skills/impl/SKILL.md      /impl  — 모델 선택 후 서브에이전트 구현
-  skills/eval/SKILL.md      /eval  — 3단계 평가 게이트
-  agents/spec-evaluator.md  Stage 2 의미 평가 (Sonnet)
-  settings.json             PostToolUse 훅
-  scripts/spec_gate.py      $0 게이트 (작업 중인 프로젝트의 SPEC.md 를 확인)
-  scripts/ambiguity_score.py (선택) 모호성 자동 채점 (Haiku)
+~/plugins/telos/
+~/.agents/plugins/marketplace.json
 ```
 
-> 기존에 `~/.claude/CLAUDE.md` 나 `settings.json` 이 있으면 install.sh 가 덮어쓰지 않는다.
-> CLAUDE.md 는 끝에 append, settings.json 은 `settings.json.spec-first` 로 따로 떨궈 수동 병합을 안내한다.
+## 버전
 
-설치 후 **Claude Code 세션을 완전히 재시작**한다. `/clear` 로는 settings/hook 이 다시 로드되지 않는다.
+PyPI 패키지, Codex 플러그인, Claude 플러그인은 각각 버전을 가진다. 설치된 플러그인의
+`.telos-version.json`에서 패키지 버전과 키트 버전을 확인할 수 있다.
 
-## Codex 설치판
+## 배포
 
-`bash install.sh codex`는 Codex 사용자 전역 플러그인을 설치한다.
+관리자는 `src/telos_kit/__init__.py`, `kit_versions.json`, 두 플러그인 manifest의 버전을
+갱신하고 `v<패키지 버전>` GitHub Release를 발행한다. 배포 워크플로는 버전과 wheel을
+검증하고 `kit_versions.json`을 Release에 첨부한 뒤 PyPI로 발행한다.
 
-여기서 플러그인 source는 로컬 파일(`~/plugins/telos`)이지만, `codex plugin add`로
-사용자 전역에 설치되므로 새 Codex 세션 전반에서 사용할 수 있다.
-
-설치 위치:
+최초 배포 전에 PyPI의 `telos-kit` 프로젝트에 GitHub Trusted Publisher를 등록해야 한다.
 
 ```text
-~/plugins/telos/                      전역 플러그인의 로컬 소스
-~/.agents/plugins/marketplace.json    개인 marketplace 등록
+Repository: jaeilssss/telos
+Workflow: publish.yml
+Environment: pypi
 ```
 
-설치 스크립트는 가능하면 `codex plugin add telos@personal`까지 실행한다. 실패하면 같은
-명령을 직접 실행하면 된다. 설치 후에는 새 Codex 스레드를 열어 플러그인 스킬을 로드한다.
+## 비용
 
-## 사용 흐름
-
-작업할 프로젝트 디렉터리에서:
-
-```
-$spec  "주문 목록 API 를 만들고 싶어"   # 질문으로 모호함 제거 → 프로젝트 루트에 SPEC.md 생성
-$impl                                   # SPEC.md 기준 구현
-$eval                                   # 인수 기준 채점
-# 실패 항목 되먹이고 $impl → $eval … 수렴까지 반복
-```
-
-Claude Code와 Codex 모두 스킬 기반이다.
-Claude Code에서는 기존 Claude UX에 맞춰 `/spec`, `/impl`, `/eval`로 사용하고,
-Codex에서는 전역 플러그인 스킬인 `$spec`, `$impl`, `$eval`로 사용한다.
-
-SPEC.md 는 **각 프로젝트 루트**에 생긴다.
-
-## 동작 범위 / 끄기
-
-- Claude Code 설치판은 전역 규칙과 PostToolUse 훅을 설치한다. 단, **게이트 훅은 차단이 아니라 경고**라
-  일회성 스크립트·탐색 작업이면 그냥 무시하고 진행해도 된다.
-- 특정 Claude 프로젝트에서 전역 규칙을 덮고 싶으면, 그 프로젝트 루트에 `CLAUDE.md` 를 두면
-  프로젝트 설정이 우선한다.
-- Codex 설치판을 빼려면 `codex plugin remove telos` 실행 후 `~/plugins/telos`와
-  `~/.agents/plugins/marketplace.json`의 해당 entry를 제거한다.
-- Claude Code 설치판을 완전히 빼려면: `~/.claude/skills/{spec,impl,eval}/`, `~/.claude/agents/spec-evaluator.md`,
-  `~/.claude/scripts/{spec_gate,ambiguity_score}.py`, `SPEC.template.md` 삭제 +
-  `settings.json` 의 해당 훅 제거 + CLAUDE.md 의 appended 블록 삭제.
-
-## 토큰 비용 레버
-
-- Stage 1(테스트·린트)은 LLM 0원으로 먼저 거른다.
-- 채점 Haiku / 의미 평가 Sonnet / Opus 는 정말 어려운 추론에만.
-- Consensus 기본 OFF, 고위험·불확실 시에만.
-- 무한 진화 루프 없음 — 간단한 작업엔 가볍게.
-
-## 커스터마이즈
-
-- Claude Code: `~/.claude/skills/eval/SKILL.md` 의 Stage 1 명령을 본인 스택 명령으로 교체.
-- `~/.claude/agents/spec-evaluator.md` 의 `model:` 티어 조정.
-- 게이트를 강제 차단형으로 바꾸려면 `spec_gate.py` 가 exit code 로 거부하도록 수정(주의).
-- Codex: `~/plugins/telos/skills/{spec,impl,eval}/SKILL.md` 를 수정한 뒤
-  `codex plugin add telos@personal`로 다시 설치.
+- 모호성 점검: Claude Haiku 또는 현재 세션의 저비용 Codex 서브에이전트
+- 기계 검증: 테스트·린트·타입체크·빌드, LLM 비용 없음
+- 의미 평가: Claude Sonnet 또는 Codex 평가 서브에이전트
+- 교차 검증: 고위험 또는 불확실한 경우에만 선택적으로 수행

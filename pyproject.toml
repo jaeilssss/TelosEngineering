@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "telos-kit"
+dynamic = ["version"]
+description = "Spec-first development plugins for Codex and Claude Code"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Telos" }]
+keywords = ["codex", "claude-code", "spec-first", "plugin"]
+classifiers = [
+  "Environment :: Console",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://github.com/jaeilssss/telos"
+Repository = "https://github.com/jaeilssss/telos"
+Issues = "https://github.com/jaeilssss/telos/issues"
+
+[project.scripts]
+telos = "telos_kit.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "telos_kit.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+telos_kit = ["kit_versions.json", "resources/**/*"]

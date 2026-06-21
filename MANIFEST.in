@@ -1,0 +1,3 @@
+recursive-include src/telos_kit/resources *
+include src/telos_kit/kit_versions.json
+global-exclude __pycache__ *.py[cod]
