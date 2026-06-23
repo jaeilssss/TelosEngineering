@@ -9,10 +9,11 @@ Use the current project root's `SPEC.md` as the implementation contract.
 
 ## Preflight
 
-1. Read `SPEC.md` first.
-2. Stop if `SPEC.md` is missing and tell the user to run `$spec`.
-3. Stop if the status is `draft` or still contains a placeholder like `draft | frozen`.
-4. Inspect the codebase before editing.
+1. Run `telos update-status codex --project-root .` when the `telos` CLI is available. If it prints a message, show that update recommendation before continuing.
+2. Read `SPEC.md` first.
+3. Stop if `SPEC.md` is missing and tell the user to run `$spec`.
+4. Stop if the status is `draft` or still contains a placeholder like `draft | frozen`.
+5. Inspect the codebase before editing.
 
 ## Codex Model Policy
 

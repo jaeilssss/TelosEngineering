@@ -11,15 +11,16 @@ Treat the text after `$spec` as the initial task input.
 
 ## Workflow
 
-1. Ask 1-3 focused questions at a time.
-2. Define ontology first: clarify the key nouns before discussing implementation.
-3. Fill the goal, constraints, acceptance criteria, out-of-scope items, and open questions.
-4. Challenge one important assumption with a contrary case.
-5. Continue until acceptance criteria are measurable and open questions are resolved.
-6. Create `SPEC.md` using `assets/SPEC.template.md`.
-7. If open questions remain, keep asking.
-8. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
-9. Set status to `frozen` only when the ambiguity check passes.
+1. Before the main workflow, run `telos update-status codex --project-root .` when the `telos` CLI is available. If it prints a message, show that update recommendation before continuing.
+2. Ask 1-3 focused questions at a time.
+3. Define ontology first: clarify the key nouns before discussing implementation.
+4. Fill the goal, constraints, acceptance criteria, out-of-scope items, and open questions.
+5. Challenge one important assumption with a contrary case.
+6. Continue until acceptance criteria are measurable and open questions are resolved.
+7. Create `SPEC.md` using `assets/SPEC.template.md`.
+8. If open questions remain, keep asking.
+9. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
+10. Set status to `frozen` only when the ambiguity check passes.
 
 ## Ambiguity Check
 
