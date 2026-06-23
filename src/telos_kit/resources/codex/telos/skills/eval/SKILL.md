@@ -9,15 +9,16 @@ Evaluate the current implementation against `SPEC.md`. Do not implement fixes wh
 
 ## Workflow
 
-1. Read `SPEC.md` and extract acceptance criteria.
-2. Run mechanical checks first: tests, lint, typecheck, and build if the project defines them.
-3. Stop if mechanical checks fail; report the command and failure.
-4. Run a semantic evaluation pass for each acceptance criterion.
-5. Report `approved`, `rejected`, or `uncertain`.
-6. Include concrete evidence: file paths, commands, test names, or observed behavior.
-7. If any criterion is `uncertain`, or the change is high-risk, recommend a consensus pass.
-8. If all criteria pass, update checked items in `SPEC.md` when appropriate.
-9. Feed rejected or uncertain criteria into the next `$spec` or `$impl` iteration.
+1. Before evaluation, run `telos update-status codex --project-root .` when the `telos` CLI is available. If it prints a message, show that update recommendation before continuing.
+2. Read `SPEC.md` and extract acceptance criteria.
+3. Run mechanical checks first: tests, lint, typecheck, and build if the project defines them.
+4. Stop if mechanical checks fail; report the command and failure.
+5. Run a semantic evaluation pass for each acceptance criterion.
+6. Report `approved`, `rejected`, or `uncertain`.
+7. Include concrete evidence: file paths, commands, test names, or observed behavior.
+8. If any criterion is `uncertain`, or the change is high-risk, recommend a consensus pass.
+9. If all criteria pass, update checked items in `SPEC.md` when appropriate.
+10. Feed rejected or uncertain criteria into the next `$spec` or `$impl` iteration.
 
 ## Semantic Evaluation
 

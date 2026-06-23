@@ -9,6 +9,8 @@ aliases: [verify, gate]
 ## 작업 입력 (선택: 특정 AC만 평가)
 $ARGUMENTS
 
+가능하면 먼저 `telos update-status claude --project-root .`를 실행한다. 메시지가 나오면 업데이트 권장을 먼저 보여준다.
+
 ## Stage 1 — Mechanical (LLM 없음, $0)
 프로젝트에 맞는 기계 검증을 실행:
 - 테스트: (예) `pytest` / `npm test` / `go test ./...`

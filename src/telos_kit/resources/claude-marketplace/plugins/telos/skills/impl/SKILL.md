@@ -7,6 +7,8 @@ aliases: [implement, 구현]
 
 ## 사전 게이트
 
+가능하면 먼저 `telos update-status claude --project-root .`를 실행한다. 메시지가 나오면 업데이트 권장을 먼저 보여준다.
+
 `SPEC.md`가 현재 작업 디렉토리에 존재하는지 Bash 툴로 확인한다.
 
 존재하지 않으면 **즉시 중단**하고 아래 메시지를 출력한다:
