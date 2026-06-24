@@ -36,6 +36,16 @@ def warn(message: str) -> None:
     }))
 
 
+def has_test_strategy(text: str) -> bool:
+    for line in text.splitlines():
+        normalized = line.strip()
+        lower = normalized.lower()
+        if lower.startswith(("test strategy:", "테스트 전략:")):
+            _, _, value = normalized.partition(":")
+            return bool(value.strip())
+    return False
+
+
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
@@ -60,6 +70,10 @@ def main() -> int:
     normalized_status = status_line.replace("`", "").lower()
     if "frozen" not in normalized_status or "draft" in normalized_status:
         warn("spec-first: SPEC.md is not frozen. Resolve open questions before implementation.")
+        return 0
+
+    if not has_test_strategy(text):
+        warn("spec-first: SPEC.md must record a non-empty Test strategy before implementation.")
 
     return 0
 

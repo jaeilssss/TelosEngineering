@@ -22,15 +22,19 @@
 <!-- 스택, 성능/보안 요구, 하면 안 되는 것, 의존성, 호환성 등 -->
 -
 
-## 4. 인수 기준 (Acceptance Criteria)
+## 4. 테스트 전략 (Test Strategy)
+<!-- 정확히 하나를 고른다: TDD | test-after | none. none 이면 같은 줄에 사유를 함께 적는다. -->
+Test strategy:
+
+## 5. 인수 기준 (Acceptance Criteria)
 <!-- 측정 가능한 검증 항목. /telos:eval 이 이 목록을 하나씩 채점한다. -->
 - [ ] AC1:
 - [ ] AC2:
 - [ ] AC3:
 
-## 5. 범위 밖 (Out of Scope)
+## 6. 범위 밖 (Out of Scope)
 -
 
-## 6. 미해결 질문 (Open Questions)
+## 7. 미해결 질문 (Open Questions)
 <!-- frozen 전에 비워져야 한다. 남아 있으면 아직 모호한 것. -->
 -

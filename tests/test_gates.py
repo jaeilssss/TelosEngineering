@@ -37,6 +37,8 @@ class GateTests(unittest.TestCase):
             (cwd / "SPEC.md").write_text("Status: draft\n", encoding="utf-8")
             self.assertIn("not frozen", self.run_gate(script, cwd, code_patch))
             (cwd / "SPEC.md").write_text("Status: frozen\n", encoding="utf-8")
+            self.assertIn("Test strategy", self.run_gate(script, cwd, code_patch))
+            (cwd / "SPEC.md").write_text("Status: frozen\nTest strategy: TDD\n", encoding="utf-8")
             self.assertEqual(self.run_gate(script, cwd, code_patch), "")
 
     def test_claude_gate_returns_structured_warning(self) -> None:

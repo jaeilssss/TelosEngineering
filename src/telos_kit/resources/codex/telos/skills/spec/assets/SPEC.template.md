@@ -21,15 +21,19 @@ Date: <YYYY-MM-DD>
 <!-- Stack, performance, security, dependencies, compatibility, and non-goals. -->
 -
 
-## 4. Acceptance Criteria
+## 4. Test Strategy
+<!-- Choose exactly one: TDD | test-after | none. If none, include the reason on the same line. -->
+Test strategy:
+
+## 5. Acceptance Criteria
 <!-- Measurable statements that $eval can score. -->
 - [ ] AC1:
 - [ ] AC2:
 - [ ] AC3:
 
-## 5. Out of Scope
+## 6. Out of Scope
 -
 
-## 6. Open Questions
+## 7. Open Questions
 <!-- Must be empty before frozen. -->
 -

@@ -12,6 +12,16 @@ def warn(message: str) -> None:
     print(json.dumps({"systemMessage": message}))
 
 
+def has_test_strategy(text: str) -> bool:
+    for line in text.splitlines():
+        normalized = line.strip()
+        lower = normalized.lower()
+        if lower.startswith(("test strategy:", "테스트 전략:")):
+            _, _, value = normalized.partition(":")
+            return bool(value.strip())
+    return False
+
+
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
@@ -41,6 +51,10 @@ def main() -> int:
     normalized_status = status_line.replace("`", "").lower()
     if "frozen" not in normalized_status or "draft" in normalized_status:
         warn("spec-first: SPEC.md가 draft입니다. /telos:spec으로 frozen 상태를 확정하세요.")
+        return 0
+
+    if not has_test_strategy(text):
+        warn("spec-first: SPEC.md에 비어 있지 않은 Test strategy를 먼저 기록하세요.")
     return 0
 
 
