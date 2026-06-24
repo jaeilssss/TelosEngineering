@@ -44,7 +44,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(catalog["interface"]["displayName"], "Mine")
         self.assertEqual([item["name"] for item in catalog["plugins"]], ["other", "telos"])
         version = json.loads((plugin / ".telos-version.json").read_text(encoding="utf-8"))
-        self.assertEqual(version, {"package": __version__, "target": "codex", "version": "0.3.0"})
+        self.assertEqual(version, {"package": __version__, "target": "codex", "version": "0.4.0"})
 
     @patch("telos_kit.installers.shutil.which", return_value=None)
     def test_claude_install_uses_plugin_hooks_without_user_hook(self, _which) -> None:

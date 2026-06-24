@@ -214,8 +214,8 @@ JSON output uses a per-target status object:
   {
     "target": "codex",
     "status": "up-to-date",
-    "installed_version": "0.3.0",
-    "latest_version": "0.3.0",
+    "installed_version": "0.4.0",
+    "latest_version": "0.4.0",
     "update_available": false
   }
 ]

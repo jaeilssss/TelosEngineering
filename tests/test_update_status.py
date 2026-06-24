@@ -79,7 +79,7 @@ class UpdateStatusTests(unittest.TestCase):
         )
 
     def test_warns_when_codex_plugin_is_outdated(self) -> None:
-        self.write_versions(codex="0.3.0")
+        self.write_versions(codex="0.4.0")
         self.write_installed("codex", "0.2.0")
 
         message = get_update_notice("codex", project_root=self.project, home=self.home)
@@ -87,7 +87,7 @@ class UpdateStatusTests(unittest.TestCase):
         self.assertEqual(
             message,
             "업데이트 권장: 설치된 Telos codex 플러그인 버전 0.2.0은(는) "
-            "현재 저장소 기준 버전 0.3.0보다 낮습니다. 먼저 `telos update codex`로 "
+            "현재 저장소 기준 버전 0.4.0보다 낮습니다. 먼저 `telos update codex`로 "
             "현재 telos-kit 패키지의 플러그인을 다시 적용하세요. 패키지까지 최신 배포본으로 "
             "올리려면 `python3 -m pip install --upgrade telos-kit`를 먼저 실행하세요.",
         )
@@ -97,13 +97,13 @@ class UpdateStatusTests(unittest.TestCase):
                 "target": "codex",
                 "status": "update-available",
                 "installed_version": "0.2.0",
-                "latest_version": "0.3.0",
+                "latest_version": "0.4.0",
                 "update_available": True,
             },
         )
 
     def test_warns_when_claude_plugin_is_outdated(self) -> None:
-        self.write_versions(claude="0.3.0")
+        self.write_versions(claude="0.4.0")
         self.write_installed("claude", "0.2.0")
 
         message = get_update_notice("claude", project_root=self.project, home=self.home)
@@ -111,7 +111,7 @@ class UpdateStatusTests(unittest.TestCase):
         self.assertEqual(
             message,
             "업데이트 권장: 설치된 Telos claude 플러그인 버전 0.2.0은(는) "
-            "현재 저장소 기준 버전 0.3.0보다 낮습니다. 먼저 `telos update claude`로 "
+            "현재 저장소 기준 버전 0.4.0보다 낮습니다. 먼저 `telos update claude`로 "
             "현재 telos-kit 패키지의 플러그인을 다시 적용하세요. 패키지까지 최신 배포본으로 "
             "올리려면 `python3 -m pip install --upgrade telos-kit`를 먼저 실행하세요.",
         )

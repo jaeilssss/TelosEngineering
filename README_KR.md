@@ -214,8 +214,8 @@ JSON 출력은 대상별 상태 객체 리스트입니다.
   {
     "target": "codex",
     "status": "up-to-date",
-    "installed_version": "0.3.0",
-    "latest_version": "0.3.0",
+    "installed_version": "0.4.0",
+    "latest_version": "0.4.0",
     "update_available": false
   }
 ]
