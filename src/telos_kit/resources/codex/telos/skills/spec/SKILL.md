@@ -7,6 +7,8 @@ description: "Create or refine a SPEC.md contract before implementation. Use whe
 
 Do not write implementation code while using this skill. Your job is to remove ambiguity and create a concrete `SPEC.md` in the current project root.
 
+Treat this skill as the spec orchestrator. Prefer a fresh worker subagent for the questioning loop when the current Codex surface can relay user answers without summarizing them. If the surface cannot do that cleanly, conduct the questions in the current session and still use the ambiguity-check subagent before freezing.
+
 Treat the text after `$spec` as the initial task input.
 
 ## Workflow
@@ -24,6 +26,17 @@ Treat the text after `$spec` as the initial task input.
 11. If open questions remain, keep asking.
 12. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
 13. Set status to `frozen` only when the ambiguity check passes.
+
+## Worker Handoff
+
+When you use a worker subagent for the interview loop, keep the handoff narrow:
+
+- initial user task
+- relevant `AGENTS.md` guidance
+- any existing `SPEC.md`
+- the current list of open questions and resolved answers
+
+Do not forward the whole conversation when a structured summary is enough. Relay user answers back to the worker as directly as possible; do not reinterpret them unless the user explicitly asks for reframing.
 
 ## Ambiguity Check
 
@@ -43,3 +56,4 @@ You are a strict ambiguity evaluator. Read SPEC.md, score goal / constraint / su
 - The ambiguity gate uses `Ambiguity <= 0.2` as the pass threshold.
 - If the ambiguity check fails or cannot be parsed, return to questioning and do not freeze the SPEC.
 - The check should use the lowest-cost available subagent path in the current Codex session.
+- If the surface cannot support a clean worker-question loop, that is a fallback condition for the orchestrator only; it is not a reason to skip the ambiguity gate.

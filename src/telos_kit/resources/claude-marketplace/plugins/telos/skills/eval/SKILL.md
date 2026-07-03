@@ -6,6 +6,8 @@ aliases: [verify, gate]
 현재 프로젝트 루트의 `SPEC.md` 인수 기준(Acceptance Criteria) 충족 여부를 **비용 순서**로
 검증한다. 싼 단계가 통과해야 비싼 단계로 넘어간다.
 
+이 스킬은 `eval` 오케스트레이터로 동작한다. 의미 판정은 구현 워커와 독립된 평가 서브에이전트가 맡아야 한다.
+
 ## 작업 입력 (선택: 특정 AC만 평가)
 $ARGUMENTS
 
@@ -23,6 +25,14 @@ $ARGUMENTS
 ## Stage 2 — Semantic
 Stage 1 통과 시, `telos:spec-evaluator` 서브에이전트를 호출한다. SPEC.md 의 각 인수 기준에 대해
 코드/동작 근거와 함께 `approved` / `rejected` / `uncertain` 을 판정하게 한다.
+
+평가 워커에는 다음만 넘긴다:
+- `SPEC.md`
+- 관련 변경 파일
+- Stage 1 결과
+- 이미 알려진 검증 한계
+
+구현 의도, 장문의 구현 대화, 희망적 추정은 넘기지 않는다. 평가는 증거 중심이어야 한다.
 
 ## Stage 3 — Consensus (선택, 기본 OFF)
 다음일 때만 사용자에게 교차 검증을 제안한다(평소엔 생략 — 토큰 절약):

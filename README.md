@@ -26,6 +26,8 @@ Telos is built around three commands/skills:
 
 It also installs non-blocking hooks that warn when code is edited without a frozen `SPEC.md`.
 
+By default, Telos treats the command entrypoint as a thin orchestrator and prefers fresh worker agents for `spec`, `impl`, and `eval` when the surface supports them cleanly. If a surface cannot support that path, Telos falls back to the current session without skipping the spec or evaluation gates.
+
 ## Requirements
 
 - Python 3.10+
@@ -107,6 +109,17 @@ During installation, Telos removes its own legacy global Claude files and hook e
 
 ## Workflow
 
+### Architecture
+
+Telos is designed around:
+
+- a thin orchestrator at the command entrypoint
+- a spec worker that owns requirement clarification
+- an implementation worker that starts from the frozen spec
+- an evaluator worker that stays independent from the implementation worker
+
+The orchestrator should manage state transitions and handoffs, not re-implement or re-evaluate the work itself.
+
 ### 1. Create or refine the spec
 
 Start with the spec command for feature work:
@@ -116,7 +129,7 @@ $spec
 /telos:spec
 ```
 
-The spec flow asks focused questions, fills `SPEC.md`, and only marks the spec as `frozen` after the ambiguity check passes.
+The spec flow asks focused questions, fills `SPEC.md`, and only marks the spec as `frozen` after the ambiguity check passes. When worker agents are available, Telos prefers a fresh spec worker and relays user answers with minimal reinterpretation.
 
 ### 2. Implement from the frozen spec
 
@@ -131,6 +144,8 @@ The implementation flow expects:
 - the status to be `frozen`
 - acceptance criteria to be concrete enough to implement against
 
+When worker agents are available, Telos prefers a fresh implementation worker so coding starts from `SPEC.md` and the relevant codebase instead of the full requirement discussion history.
+
 ### 3. Evaluate against the spec
 
 ```text
@@ -143,6 +158,8 @@ The evaluation flow runs:
 1. mechanical checks first
 2. semantic review against acceptance criteria
 3. optional consensus review for high-risk or uncertain cases
+
+The semantic review should stay independent from the implementation worker and should receive evidence, not implementation intent.
 
 ## Hooks
 
