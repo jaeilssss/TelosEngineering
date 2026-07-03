@@ -18,14 +18,17 @@
 ## 워크플로우 (우로보로스 4단계의 경량 버전)
 
 ```
-/telos:spec   →  소크라테스식 질문으로 모호함 제거 → 프로젝트 루트에 SPEC.md(계약) 생성
-구현    →  SPEC.md 기준으로 구현
-/telos:eval   →  3단계 게이트 (Mechanical → Semantic → (선택) Consensus)
+/telos:spec   →  오케스트레이터가 spec 워커를 통해 모호함 제거 → 프로젝트 루트에 SPEC.md(계약) 생성
+/telos:impl   →  오케스트레이터가 fresh impl 워커로 구현
+/telos:eval   →  3단계 게이트 (Mechanical → 독립 semantic evaluator → (선택) Consensus)
 반복    →  실패한 인수 기준을 SPEC.md 에 되먹이고 루프
 ```
 
 `/telos:spec` 은 열린 질문이 모두 소진되면 `telos:spec-ambiguity-evaluator` 서브에이전트로
 모호성 점검을 자동 수행하고, Ambiguity <= 0.2 일 때만 `frozen` 으로 전환한다.
+
+오케스트레이터는 얇게 유지한다. 상태 전이, 입력 축약, 결과 전달만 담당하고 구현·평가 판단을 다시
+직접 하지 않는다.
 
 ## 3단계 평가 게이트 (비용 순서)
 

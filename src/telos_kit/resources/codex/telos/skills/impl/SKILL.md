@@ -7,6 +7,8 @@ description: "Implement strictly from a frozen SPEC.md. Use when the user writes
 
 Use the current project root's `SPEC.md` as the implementation contract.
 
+Treat this skill as the implementation orchestrator. Prefer a fresh implementation worker subagent so the coding context starts from the frozen spec and the current codebase, not from the full spec interview history.
+
 ## Preflight
 
 1. Run `telos update-status codex --project-root .` when the `telos` CLI is available. If it prints a message, show that update recommendation before continuing.
@@ -34,12 +36,31 @@ Do not emulate Claude's Sonnet/Opus picker literally. In Codex, model selection 
 
 ## Implementation Rules
 
+- Default to a fresh worker subagent when multi-agent tools are available.
+- Give the worker only the context needed to implement:
+  - the frozen `SPEC.md`
+  - relevant code paths
+  - repository constraints from `AGENTS.md`
+  - any known dirty-worktree constraints that affect touched files
+- Do not dump the whole prior conversation into the worker unless a specific nuance is not captured in `SPEC.md`.
 - Implement only what is required by the acceptance criteria.
 - Keep changes surgical; do not refactor unrelated code.
 - Do not add speculative features or broad abstractions.
 - Map each meaningful change back to one or more acceptance criteria.
 - Verify with the narrowest useful command first, then broader checks when relevant.
 - Preserve user changes and do not revert unrelated work.
+
+## Worker Output Contract
+
+Require the worker to return:
+
+- changed files
+- acceptance-criteria coverage
+- verification commands run
+- blocked questions, if any
+- verification gaps, if any
+
+If the worker reports a spec conflict or missing acceptance detail, stop and route that back to `$spec` instead of silently guessing.
 
 ## Completion
 

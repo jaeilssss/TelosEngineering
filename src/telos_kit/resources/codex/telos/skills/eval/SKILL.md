@@ -7,6 +7,8 @@ description: "Evaluate implementation against SPEC.md acceptance criteria. Use w
 
 Evaluate the current implementation against `SPEC.md`. Do not implement fixes while evaluating unless the user explicitly asks after the evaluation.
 
+Treat this skill as the evaluation orchestrator. The semantic judge should be independent from the implementation worker.
+
 ## Workflow
 
 1. Before evaluation, run `telos update-status codex --project-root .` when the `telos` CLI is available. If it prints a message, show that update recommendation before continuing.
@@ -31,6 +33,15 @@ You are a strict evaluator. Do not implement. Read SPEC.md, inspect the relevant
 ```
 
 The evaluator should inherit the current Codex model by default. Do not override the model unless the user explicitly asks or the change is high-risk enough to justify a stronger evaluation model.
+
+Pass the evaluator only the evidence it needs:
+
+- `SPEC.md`
+- the relevant changed files
+- mechanical-check results
+- known verification limitations
+
+Do not pass implementation intent, speculative rationale, or the full implementation conversation unless the absence of that context would make the evaluation misleading.
 
 If the current Codex surface does not expose subagents, perform a second-pass review in the current session after mechanical checks. Do not rely on implementation intent; rely on evidence.
 
