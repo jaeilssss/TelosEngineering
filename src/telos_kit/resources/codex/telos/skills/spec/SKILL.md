@@ -7,7 +7,7 @@ description: "Create or refine a SPEC.md contract before implementation. Use whe
 
 Do not write implementation code while using this skill. Your job is to remove ambiguity and create a concrete `SPEC.md` in the current project root.
 
-Treat this skill as the spec orchestrator. Prefer a fresh worker subagent for the questioning loop when the current Codex surface can relay user answers without summarizing them. If the surface cannot do that cleanly, conduct the questions in the current session and still use the ambiguity-check subagent before freezing.
+Treat this skill as the spec orchestrator. Run the questioning loop in the current session by default so the user does not pay repeated handoff cost on every answer. Use a worker subagent for the interview loop only when the current Codex surface can relay user answers cleanly and there is a concrete reason that the extra isolation is worth it. Always keep the ambiguity-check subagent before freezing.
 
 Treat the text after `$spec` as the initial task input.
 
@@ -27,9 +27,9 @@ Treat the text after `$spec` as the initial task input.
 12. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
 13. Set status to `frozen` only when the ambiguity check passes.
 
-## Worker Handoff
+## Optional Worker Handoff
 
-When you use a worker subagent for the interview loop, keep the handoff narrow:
+When you explicitly use a worker subagent for the interview loop, keep the handoff narrow:
 
 - initial user task
 - relevant `AGENTS.md` guidance
@@ -55,5 +55,5 @@ You are a strict ambiguity evaluator. Read SPEC.md, score goal / constraint / su
 - Do not use `frozen` as a placeholder. A status line like `Status: draft | frozen` is still draft.
 - The ambiguity gate uses `Ambiguity <= 0.2` as the pass threshold.
 - If the ambiguity check fails or cannot be parsed, return to questioning and do not freeze the SPEC.
-- The check should use the lowest-cost available subagent path in the current Codex session.
-- If the surface cannot support a clean worker-question loop, that is a fallback condition for the orchestrator only; it is not a reason to skip the ambiguity gate.
+- The ambiguity check should use the lowest-cost available subagent path in the current Codex session.
+- Do not skip the ambiguity gate just because the interview loop stayed in the current session.

@@ -24,7 +24,7 @@ Treat this skill as the evaluation orchestrator. The semantic judge should be in
 
 ## Semantic Evaluation
 
-Use a Codex subagent as the default semantic evaluator when multi-agent tools are available.
+Use a Codex subagent for semantic evaluation when independence materially improves the judgment, especially for high-risk changes, unclear acceptance criteria, or any result that would otherwise be uncertain.
 
 Spawn a separate evaluator with a narrow prompt:
 
@@ -43,7 +43,7 @@ Pass the evaluator only the evidence it needs:
 
 Do not pass implementation intent, speculative rationale, or the full implementation conversation unless the absence of that context would make the evaluation misleading.
 
-If the current Codex surface does not expose subagents, perform a second-pass review in the current session after mechanical checks. Do not rely on implementation intent; rely on evidence.
+If the acceptance criteria are narrow and the mechanical checks already provide most of the evidence, a second-pass review in the current session is sufficient. If the current Codex surface does not expose subagents, perform that second-pass review after mechanical checks. Do not rely on implementation intent; rely on evidence.
 
 For each acceptance criterion, ask: "What concrete behavior would falsify this?" Check the code, tests, and command output for that counterexample before approving.
 
