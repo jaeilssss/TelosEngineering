@@ -18,9 +18,9 @@
 ## 워크플로우 (우로보로스 4단계의 경량 버전)
 
 ```
-/telos:spec   →  오케스트레이터가 spec 워커를 통해 모호함 제거 → 프로젝트 루트에 SPEC.md(계약) 생성
-/telos:impl   →  오케스트레이터가 fresh impl 워커로 구현
-/telos:eval   →  3단계 게이트 (Mechanical → 독립 semantic evaluator → (선택) Consensus)
+/telos:spec   →  오케스트레이터가 현재 세션에서 질문 루프 진행 → ambiguity evaluator 통과 시 SPEC.md(계약) 생성
+/telos:impl   →  Routine 은 현재 세션 구현, Complex 나 컨텍스트 오염 시 fresh impl 워커 사용
+/telos:eval   →  3단계 게이트 (Mechanical → 조건부 semantic evaluator → (선택) Consensus)
 반복    →  실패한 인수 기준을 SPEC.md 에 되먹이고 루프
 ```
 
@@ -34,5 +34,5 @@
 
 - **Stage 1 — Mechanical ($0):** 테스트·린트·타입체크·빌드. 통과 못 하면 여기서 멈춘다.
   LLM 토큰을 쓰기 전에 기계가 먼저 거른다.
-- **Stage 2 — Semantic:** `telos:spec-evaluator` 서브에이전트로 각 인수 기준 충족 여부를 근거와 함께 판정.
+- **Stage 2 — Semantic:** 작은 변경은 현재 세션 2차 검토로 평가하고, 고위험이거나 불확실성이 크면 `telos:spec-evaluator` 서브에이전트로 각 인수 기준 충족 여부를 근거와 함께 판정.
 - **Stage 3 — Consensus (선택):** 고위험이거나 Stage 2가 불확실할 때만 다른 모델로 교차 검증.

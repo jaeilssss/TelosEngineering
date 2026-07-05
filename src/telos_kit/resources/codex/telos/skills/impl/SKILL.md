@@ -7,7 +7,7 @@ description: "Implement strictly from a frozen SPEC.md. Use when the user writes
 
 Use the current project root's `SPEC.md` as the implementation contract.
 
-Treat this skill as the implementation orchestrator. Prefer a fresh implementation worker subagent so the coding context starts from the frozen spec and the current codebase, not from the full spec interview history.
+Treat this skill as the implementation orchestrator. Default to implementation in the current Codex session for routine work. Use a fresh implementation worker subagent when the change is complex or when the current session is carrying enough prior spec or debugging context that a fresh implementation context is materially cleaner.
 
 ## Preflight
 
@@ -36,7 +36,10 @@ Do not emulate Claude's Sonnet/Opus picker literally. In Codex, model selection 
 
 ## Implementation Rules
 
-- Default to a fresh worker subagent when multi-agent tools are available.
+- Default to the current session for routine implementation.
+- Use a fresh worker subagent when multi-agent tools are available and either:
+  - the change is complex, broad, or high-risk
+  - the current session context is long or noisy enough that a fresh implementation context is safer
 - Give the worker only the context needed to implement:
   - the frozen `SPEC.md`
   - relevant code paths
