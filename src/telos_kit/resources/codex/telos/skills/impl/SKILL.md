@@ -57,14 +57,21 @@ Do not emulate Claude's Sonnet/Opus picker literally. In Codex, model selection 
 
 Require the worker to return:
 
+- requirements summary
+- confirmed decisions
+- current plan and execution status
 - changed files
 - acceptance-criteria coverage
 - relevant paths or code locations inspected
 - verification commands run
 - blocked questions, if any
 - verification gaps, if any
+- handoff files or artifacts for the next step
+- commit reference, when a commit exists
 
 If the worker reports a spec conflict or missing acceptance detail, stop and route that back to `$spec` instead of silently guessing.
+
+Keep the main-session return compact. Do not dump long exploration logs or full file contents when a short structured summary and file index are enough for the next instruction.
 
 ## Completion
 
