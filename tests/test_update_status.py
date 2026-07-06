@@ -173,6 +173,34 @@ class UpdateStatusTests(unittest.TestCase):
             },
         )
 
+    def test_warns_about_upgrade_even_when_codex_cache_is_stale(self) -> None:
+        self.write_versions(codex="0.5.0")
+        self.write_installed("codex", "0.4.0")
+        self.write_codex_cache("0.3.0")
+
+        message = get_update_notice("codex", project_root=self.project, home=self.home)
+
+        self.assertEqual(
+            message,
+            "업데이트 권장: 설치된 Telos codex 플러그인 버전 0.4.0은(는) "
+            "현재 저장소 기준 버전 0.5.0보다 낮습니다. 먼저 `telos update codex`로 "
+            "현재 telos-kit 패키지의 플러그인을 다시 적용하세요. 패키지까지 최신 배포본으로 "
+            "올리려면 `python3 -m pip install --upgrade telos-kit`를 먼저 실행하세요. "
+            "또한 Codex 캐시가 없거나 불완전하므로 업데이트 후 Codex를 완전히 재시작하세요.",
+        )
+        self.assertEqual(
+            get_update_status("codex", project_root=self.project, home=self.home),
+            {
+                "target": "codex",
+                "status": "update-available",
+                "installed_version": "0.4.0",
+                "latest_version": "0.5.0",
+                "update_available": True,
+                "cache_status": "cache-stale",
+                "cache_versions": ["0.3.0"],
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -49,10 +49,38 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual([item["name"] for item in catalog["plugins"]], ["other", "telos"])
         version = json.loads((plugin / ".telos-version.json").read_text(encoding="utf-8"))
         self.assertEqual(version, {"package": __version__, "target": "codex", "version": __version__})
+        self.assertTrue(stale_cache.exists())
+        self.assertTrue(current_cache.exists())
+        self.assertEqual(messages[-1], "Restart Codex completely before using Telos again.")
+
+    @patch("telos_kit.installers._run")
+    @patch("telos_kit.installers.shutil.which", return_value="/usr/bin/codex")
+    def test_codex_install_prunes_stale_cache_after_successful_plugin_add(self, _which, run) -> None:
+        run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        stale_cache = self.home / ".codex" / "plugins" / "cache" / "personal" / "telos" / "0.3.0"
+        current_cache = self.home / ".codex" / "plugins" / "cache" / "personal" / "telos" / __version__
+        stale_cache.mkdir(parents=True)
+        current_cache.mkdir(parents=True)
+
+        messages = install_codex(self.home, "/opt/python")
+
         self.assertFalse(stale_cache.exists())
         self.assertTrue(current_cache.exists())
+        self.assertIn("Codex plugin installed: telos@personal", messages)
         self.assertIn("Pruned stale Codex Telos cache versions: 0.3.0", messages)
-        self.assertEqual(messages[-1], "Restart Codex completely before using Telos again.")
+
+    @patch("telos_kit.installers._run")
+    @patch("telos_kit.installers.shutil.which", return_value="/usr/bin/codex")
+    def test_codex_install_keeps_existing_cache_when_plugin_add_fails(self, _which, run) -> None:
+        run.return_value = subprocess.CompletedProcess(["/usr/bin/codex", "plugin", "add", "telos@personal"], 1, "", "boom")
+        stale_cache = self.home / ".codex" / "plugins" / "cache" / "personal" / "telos" / "0.3.0"
+        stale_cache.mkdir(parents=True)
+
+        messages = install_codex(self.home, "/opt/python")
+
+        self.assertTrue(stale_cache.exists())
+        self.assertTrue(any("WARNING:" in message for message in messages))
+        self.assertFalse(any("Pruned stale Codex Telos cache versions" in message for message in messages))
 
     @patch("telos_kit.installers.shutil.which", return_value=None)
     def test_claude_install_uses_plugin_hooks_without_user_hook(self, _which) -> None:
