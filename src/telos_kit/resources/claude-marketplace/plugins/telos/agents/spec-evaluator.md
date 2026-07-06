@@ -21,8 +21,12 @@ model: claude-sonnet-4-6
 AC1: approved   — 근거: tests/test_x.py::test_create 통과, src/x.py:42 에서 처리
 AC2: rejected   — 근거: 빈 입력 처리 없음 (src/x.py:55), 해당 테스트 부재
 AC3: uncertain  — 근거: 동시성 요구는 코드만으로 확인 불가, 부하 테스트 필요
+Verification: mechanical checks pass|fail — ...
+Handoff:
+- 다음 반복에 다시 봐야 할 파일/테스트/명령
 ---
 요약: 2/3 통과. 실패/불확실 항목을 다음 반복 입력으로 권장.
 ```
 
 `uncertain`이 하나라도 있으면, /telos:eval의 Stage 3(Consensus) 검토를 권한다고 명시한다.
+장문의 로그 전문 대신 판정과 다음 반복에 필요한 근거/인덱스만 반환한다.
