@@ -26,7 +26,7 @@ Telos is built around three commands/skills:
 
 It also installs non-blocking hooks that warn when code is edited without a frozen `SPEC.md`.
 
-By default, Telos treats the command entrypoint as a thin orchestrator and prefers fresh worker agents for `spec`, `impl`, and `eval` when the surface supports them cleanly. If a surface cannot support that path, Telos falls back to the current session without skipping the spec or evaluation gates.
+Telos treats the command entrypoint as a thin orchestrator. It keeps work in the current session by default and uses subagents only when they help isolate high-noise exploration or provide an independent evaluation pass. If a surface cannot support subagents, Telos falls back to the current session without skipping the spec or evaluation gates.
 
 ## Requirements
 
@@ -114,9 +114,9 @@ During installation, Telos removes its own legacy global Claude files and hook e
 Telos is designed around:
 
 - a thin orchestrator at the command entrypoint
-- a spec worker that owns requirement clarification
-- an implementation worker that starts from the frozen spec
-- an evaluator worker that stays independent from the implementation worker
+- optional workers for spec ambiguity checks or narrow repo exploration
+- an implementation worker for broad or noisy implementation search
+- an evaluator worker that stays independent from the implementation worker when needed
 
 The orchestrator should manage state transitions and handoffs, not re-implement or re-evaluate the work itself.
 
@@ -129,7 +129,7 @@ $spec
 /telos:spec
 ```
 
-The spec flow asks focused questions, fills `SPEC.md`, and only marks the spec as `frozen` after the ambiguity check passes. When worker agents are available, Telos prefers a fresh spec worker and relays user answers with minimal reinterpretation.
+The spec flow asks focused questions, fills `SPEC.md`, and only marks the spec as `frozen` after the ambiguity check passes. The questioning loop stays in the main session by default. Telos uses a subagent only for narrow, high-noise exploration or the final ambiguity check.
 
 ### 2. Implement from the frozen spec
 
@@ -144,7 +144,7 @@ The implementation flow expects:
 - the status to be `frozen`
 - acceptance criteria to be concrete enough to implement against
 
-When worker agents are available, Telos prefers a fresh implementation worker so coding starts from `SPEC.md` and the relevant codebase instead of the full requirement discussion history.
+The implementation flow reads `SPEC.md` first, then inspects the codebase to confirm or correct the first-pass scope and risk read. Telos keeps small, local changes in the main session and uses an implementation worker only when search scope or impact radius would otherwise leave a large trail of low-value exploration in the main context.
 
 ### 3. Evaluate against the spec
 
@@ -159,7 +159,7 @@ The evaluation flow runs:
 2. semantic review against acceptance criteria
 3. optional consensus review for high-risk or uncertain cases
 
-The semantic review should stay independent from the implementation worker and should receive evidence, not implementation intent.
+The semantic review should stay independent from the implementation worker and should receive evidence, not implementation intent. For small, low-risk changes with compact evidence, the current session can perform the semantic pass directly.
 
 ## Hooks
 
