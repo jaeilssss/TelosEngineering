@@ -113,7 +113,6 @@ def install_codex(home: Path, python_executable: str) -> list[str]:
     _write_json(manifest_path, manifest)
     _configure_codex_hook(destination, python_executable)
     _write_install_version(destination, "codex", versions["codex"])
-    pruned_versions = _prune_codex_cache(home, versions["codex"])
 
     catalog = _read_json(
         marketplace,
@@ -137,10 +136,6 @@ def install_codex(home: Path, python_executable: str) -> list[str]:
         f"Codex plugin copied to {destination}",
         f"Codex marketplace updated at {marketplace}",
     ]
-    if pruned_versions:
-        messages.append(
-            "Pruned stale Codex Telos cache versions: " + ", ".join(pruned_versions)
-        )
     codex = shutil.which("codex")
     plugin_id = f"{PLUGIN_NAME}@{catalog['name']}"
     if not codex:
@@ -154,6 +149,11 @@ def install_codex(home: Path, python_executable: str) -> list[str]:
         messages.append(f"WARNING: {_command_failure(command, result)}")
     else:
         messages.append(f"Codex plugin installed: {plugin_id}")
+        pruned_versions = _prune_codex_cache(home, versions["codex"])
+        if pruned_versions:
+            messages.append(
+                "Pruned stale Codex Telos cache versions: " + ", ".join(pruned_versions)
+            )
     messages.append("Restart Codex completely before using Telos again, then review the Telos hook with /hooks.")
     return messages
 

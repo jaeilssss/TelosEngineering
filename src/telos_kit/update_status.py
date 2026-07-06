@@ -120,16 +120,20 @@ def get_update_status(target: str, *, project_root: Path, home: Path | None = No
             "latest_version": latest,
             "update_available": False,
         }
+    cache_status = None
     if target == "codex" and cache_versions and not _codex_cache_has_skill(selected_home, current):
-        return {
-            "target": target,
-            "status": "cache-stale",
-            "installed_version": current,
-            "latest_version": latest,
-            "update_available": False,
-            "cache_versions": cache_versions,
-        }
+        cache_status = "cache-stale"
+
     if current_parts >= latest_parts:
+        if cache_status:
+            return {
+                "target": target,
+                "status": cache_status,
+                "installed_version": current,
+                "latest_version": latest,
+                "update_available": False,
+                "cache_versions": cache_versions,
+            }
         return {
             "target": target,
             "status": "up-to-date",
@@ -138,13 +142,17 @@ def get_update_status(target: str, *, project_root: Path, home: Path | None = No
             "update_available": False,
         }
 
-    return {
+    result = {
         "target": target,
         "status": "update-available",
         "installed_version": current,
         "latest_version": latest,
         "update_available": True,
     }
+    if cache_status:
+        result["cache_status"] = cache_status
+        result["cache_versions"] = cache_versions
+    return result
 
 
 def get_update_notice(target: str, *, project_root: Path, home: Path | None = None) -> str | None:
@@ -167,9 +175,14 @@ def get_update_notice(target: str, *, project_root: Path, home: Path | None = No
 
     current = status["installed_version"]
     latest = status["latest_version"]
-    return (
+    message = (
         f"업데이트 권장: 설치된 Telos {target} 플러그인 버전 {current}은(는) "
         f"현재 저장소 기준 버전 {latest}보다 낮습니다. 먼저 `telos update {target}`로 "
         "현재 telos-kit 패키지의 플러그인을 다시 적용하세요. 패키지까지 최신 배포본으로 "
         "올리려면 `python3 -m pip install --upgrade telos-kit`를 먼저 실행하세요."
     )
+    if status.get("cache_status") == "cache-stale":
+        return (
+            message + " 또한 Codex 캐시가 없거나 불완전하므로 업데이트 후 Codex를 완전히 재시작하세요."
+        )
+    return message
