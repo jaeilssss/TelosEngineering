@@ -129,7 +129,7 @@ $spec
 /telos:spec
 ```
 
-The spec flow asks focused questions, fills `SPEC.md`, and only marks the spec as `frozen` after the ambiguity check passes. The questioning loop stays in the main session by default. Telos uses a subagent only for narrow, high-noise exploration or the final ambiguity check.
+The spec flow asks focused questions, fills `SPEC.md`, and only marks the spec as `frozen` after the ambiguity check passes. It records the expected change surface, project-specific verification commands, applicable risk checks, and the Git baseline at freeze time. For small local work, `$spec quick` creates the same concise contract; high-risk work uses the full interview. The questioning loop stays in the main session by default. Telos uses a subagent only for narrow, high-noise exploration or the final ambiguity check.
 
 ### 2. Implement from the frozen spec
 
@@ -144,7 +144,7 @@ The implementation flow expects:
 - the status to be `frozen`
 - acceptance criteria to be concrete enough to implement against
 
-The implementation flow reads `SPEC.md` first, then inspects the codebase to confirm or correct the first-pass scope and risk read. Telos keeps small, local changes in the main session and uses an implementation worker only when search scope or impact radius would otherwise leave a large trail of low-value exploration in the main context.
+The implementation flow reads `SPEC.md` first, then inspects the codebase to confirm or correct the first-pass scope and risk read. It maps changes to acceptance criteria and flags changes outside the declared surface or a stale baseline before widening scope. Telos keeps small, local changes in the main session and uses an implementation worker only when search scope or impact radius would otherwise leave a large trail of low-value exploration in the main context.
 
 ### 3. Evaluate against the spec
 
@@ -155,9 +155,10 @@ $eval
 
 The evaluation flow runs:
 
-1. mechanical checks first
-2. semantic review against acceptance criteria
-3. optional consensus review for high-risk or uncertain cases
+1. recorded, project-specific verification commands and mechanical checks first
+2. scope and semantic review against acceptance criteria and selected risks
+3. optional report-only lean pass for avoidable complexity
+4. optional consensus review for high-risk or uncertain cases
 
 The semantic review should stay independent from the implementation worker and should receive evidence, not implementation intent. For small, low-risk changes with compact evidence, the current session can perform the semantic pass directly.
 

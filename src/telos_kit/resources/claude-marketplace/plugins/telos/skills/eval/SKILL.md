@@ -16,13 +16,17 @@ $ARGUMENTS
 가능하면 먼저 `telos update-status claude --project-root .`를 실행한다. 메시지가 나오면 업데이트 권장을 먼저 보여준다.
 
 ## Stage 1 — Mechanical (LLM 없음, $0)
-프로젝트에 맞는 기계 검증을 실행:
+SPEC.md의 Verification Plan에 기록된 명령을 먼저 실행하고, 이어 프로젝트에 맞는 기계 검증을 실행한다. Gradle/Maven 등 프로젝트의 실제 명령을 쓰며 Python 명령으로 대체하지 않는다. 파괴적이거나 네트워크를 쓰거나 효과가 불명확한 명령은 실행 전 사용자에게 확인한다.
+
+- 테스트: (예) `./gradlew test --tests ...` / `./mvnw test -Dtest=...` / `npm test`
 - 테스트: (예) `pytest` / `npm test` / `go test ./...`
 - 린트/포맷: (예) `ruff check` / `eslint`
 - 타입체크: (예) `mypy` / `tsc --noEmit`
 - 빌드: 해당 시
 
 **하나라도 실패하면 여기서 멈춘다.** 실패 내역을 보고하고 LLM 단계로 넘어가지 않는다.
+
+diff를 Expected Change Surface와 비교한다. 예상 밖 파일, 의존성, API, 스키마 변경은 사용자가 범위 확장을 확인하기 전까지 `uncertain`이다.
 
 ## Stage 2 — Semantic
 Stage 1 통과 후, 아래 중 하나면 `telos:spec-evaluator` 서브에이전트를 호출한다:
@@ -33,6 +37,9 @@ Stage 1 통과 후, 아래 중 하나면 `telos:spec-evaluator` 서브에이전�
 그 외의 작고 명확한 변경은 현재 세션에서 2차 검토로 semantic pass를 수행한다.
 서브에이전트를 쓸 때는 SPEC.md 의 각 인수 기준에 대해 코드/동작 근거와 함께
 `approved` / `rejected` / `uncertain` 을 판정하게 한다.
+선택된 Risk Profile의 각 반증 검사를 AC와 함께 판정한다.
+
+사용자가 lean pass를 요청한 경우에만, AC와 무관한 변경, 불필요한 의존성, 추측성 추상화, dead code를 report-only로 찾는다. lean pass는 코드를 바꾸지 않으며 정확성·보안·접근성 검토를 대체하지 않는다.
 
 평가 워커에는 다음만 넘긴다:
 - `SPEC.md`
