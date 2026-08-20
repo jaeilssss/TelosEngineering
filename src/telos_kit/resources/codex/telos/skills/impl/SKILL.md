@@ -16,6 +16,8 @@ Treat this skill as the implementation orchestrator. Keep implementation in the 
 3. Stop if `SPEC.md` is missing and tell the user to run `$spec`.
 4. Stop if the status is `draft` or still contains a placeholder like `draft | frozen`.
 5. Inspect the codebase before editing.
+6. Read `Expected Change Surface`, `Verification Plan`, `Risk Profile`, and `Spec baseline` when present.
+   - If the baseline does not match the current branch/revision and the difference could affect the task, show the drift and ask the user to reconfirm the spec before editing.
 
 ## Codex Model Policy
 
@@ -50,6 +52,9 @@ Do not emulate Claude's Sonnet/Opus picker literally. In Codex, model selection 
 - Keep changes surgical; do not refactor unrelated code.
 - Do not add speculative features or broad abstractions.
 - Map each meaningful change back to one or more acceptance criteria.
+- Before completion, compare the changed files and dependency/API/schema changes with the expected change surface. Flag every unmapped change or disallowed change for user confirmation; do not silently broaden the spec.
+- Preserve the verification plan for `$eval`; do not replace project commands with a language-specific default.
+- For each selected risk profile, implement the check required by the spec rather than assuming generic tests cover it.
 - Verify with the narrowest useful command first, then broader checks when relevant.
 - Preserve user changes and do not revert unrelated work.
 
@@ -66,6 +71,7 @@ Require the worker to return:
 - verification commands run
 - blocked questions, if any
 - verification gaps, if any
+- scope-drift findings and user confirmations, if any
 - handoff files or artifacts for the next step
 - commit reference, when a commit exists
 

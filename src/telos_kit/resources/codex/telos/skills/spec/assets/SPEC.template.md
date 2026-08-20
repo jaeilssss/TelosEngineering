@@ -7,6 +7,7 @@
 
 Status: `draft` | `frozen`
 Date: <YYYY-MM-DD>
+Spec baseline: <branch and Git revision when frozen, or `not a Git repository`>
 
 ## 1. Goal
 <!-- One concrete sentence: what, for whom, and why. Avoid vague words like "improve" or "optimize". -->
@@ -25,15 +26,30 @@ Date: <YYYY-MM-DD>
 <!-- Choose exactly one: TDD | test-after | none. If none, include the reason on the same line. -->
 Test strategy:
 
-## 5. Acceptance Criteria
+## 5. Expected Change Surface
+<!-- Files or areas allowed to change, dependency/API/schema compatibility constraints. Use `not constrained` only when that is intentional. -->
+- allowed:
+- excluded:
+- dependency/API/schema changes:
+
+## 6. Verification Plan
+<!-- Commands and manual checks that demonstrate the acceptance criteria. Use the project's stack, e.g. ./gradlew test --tests ..., ./mvnw test -Dtest=..., npm test. -->
+- command:
+- manual check:
+
+## 7. Risk Profile
+<!-- Select only applicable risks: auth/authorization, database migration, public API, payment/data deletion, concurrency. For each, state the check that must pass. -->
+-
+
+## 8. Acceptance Criteria
 <!-- Measurable statements that $eval can score. -->
 - [ ] AC1:
 - [ ] AC2:
 - [ ] AC3:
 
-## 6. Out of Scope
+## 9. Out of Scope
 -
 
-## 7. Open Questions
+## 10. Open Questions
 <!-- Must be empty before frozen. -->
 -

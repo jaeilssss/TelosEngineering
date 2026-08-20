@@ -13,14 +13,16 @@ Treat this skill as the evaluation orchestrator. The semantic judge should be in
 
 1. Before evaluation, run `telos update-status codex --project-root .` when the `telos` CLI is available. If it prints a message, show that update recommendation before continuing.
 2. Read `SPEC.md` and extract acceptance criteria.
-3. Run mechanical checks first: tests, lint, typecheck, and build if the project defines them.
+3. Run the recorded verification-plan commands first, then relevant tests, lint, typecheck, and build if the project defines them. Treat commands as project-specific (for example, Gradle or Maven for Spring); do not substitute Python commands. Before running a command that is destructive, uses the network, or has an unclear effect, ask the user.
 4. Stop if mechanical checks fail; report the command and failure.
-5. Run a semantic evaluation pass for each acceptance criterion.
-6. Report `approved`, `rejected`, or `uncertain`.
-7. Include concrete evidence: file paths, commands, test names, or observed behavior.
-8. If any criterion is `uncertain`, or the change is high-risk, recommend a consensus pass.
-9. If all criteria pass, update checked items in `SPEC.md` when appropriate.
-10. Feed rejected or uncertain criteria into the next `$spec` or `$impl` iteration.
+5. Compare the diff against Expected Change Surface. An unexpected file, dependency, API, or schema change is `uncertain` until the user confirms the expanded scope.
+6. Run a semantic evaluation pass for each acceptance criterion and each selected risk-profile check.
+7. If the user requests a lean pass, report only avoidable complexity: AC-unmapped changes, unnecessary dependencies, speculative abstractions, and dead code. It must not apply changes or replace correctness, security, or accessibility review.
+8. Report `approved`, `rejected`, or `uncertain`.
+9. Include concrete evidence: file paths, commands, test names, or observed behavior.
+10. If any criterion is `uncertain`, or the change is high-risk, recommend a consensus pass.
+11. If all criteria pass, update checked items in `SPEC.md` when appropriate.
+12. Feed rejected or uncertain criteria into the next `$spec` or `$impl` iteration.
 
 ## Semantic Evaluation
 

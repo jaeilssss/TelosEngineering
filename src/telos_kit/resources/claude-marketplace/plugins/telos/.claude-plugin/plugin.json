@@ -1,6 +1,6 @@
 {
   "name": "telos",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Spec-first development workflow using SPEC.md as the implementation contract.",
   "author": {
     "name": "Telos"
