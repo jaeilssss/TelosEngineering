@@ -1,0 +1,22 @@
+{
+  "name": "telos",
+  "version": "2.0.0",
+  "description": "Spec-driven capability orchestration for Codex using SPEC.md as the goal contract.",
+  "author": {
+    "name": "Telos"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Telos",
+    "shortDescription": "Use $spec, $run, and $eval with SPEC.md.",
+    "longDescription": "Adds global Telos V2 skills: $spec creates a frozen goal contract, $run discovers and orchestrates available capabilities, and $eval verifies the result.",
+    "developerName": "Telos",
+    "category": "Productivity",
+    "capabilities": ["Write"],
+    "defaultPrompt": [
+      "$spec \"만들 기능 설명\"",
+      "$run",
+      "$eval"
+    ]
+  }
+}
