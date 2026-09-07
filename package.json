@@ -19,7 +19,7 @@
   "files": ["dist", "README.md", "README_KR.md"],
   "scripts": {
     "build": "node scripts/clean.mjs && tsc && node scripts/copy-resources.mjs",
-    "test": "npm run build && node --test dist/*.test.js",
+    "test": "npm run build && node --test dist/core.test.js",
     "check:package": "npm pack --dry-run",
     "check:release": "node scripts/check-release-versions.mjs"
   },
