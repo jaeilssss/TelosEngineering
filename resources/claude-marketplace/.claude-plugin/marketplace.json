@@ -1,0 +1,15 @@
+{
+  "name": "telos-kit",
+  "owner": {
+    "name": "Telos"
+  },
+  "description": "Telos V2 spec-driven capability orchestration plugins",
+  "plugins": [
+    {
+      "name": "telos",
+      "source": "./plugins/telos",
+      "description": "Spec-driven workflow with spec, run, and evaluation skills",
+      "version": "2.0.0"
+    }
+  ]
+}

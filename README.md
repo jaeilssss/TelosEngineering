@@ -1,313 +1,45 @@
-# Telos
+# Telos V2
 
-Spec-first plugins for Codex and Claude Code.
+Telos is a spec-driven capability orchestration harness for Codex and Claude Code.
 
-Telos adds a lightweight workflow around a project-root `SPEC.md`:
+`$spec` / `/telos:spec` defines an approved goal. `$run` / `/telos:run` discovers installed skills, plugins, and agents, selects the relevant capabilities, and loops through implementation, test, Eval, and re-routing until the Spec is verified.
 
-- define the contract first
-- implement against the frozen spec
-- evaluate against measurable acceptance criteria
+## Install
 
-The repository ships:
-
-- a Python CLI package: `telos-kit`
-- a Codex plugin
-- a Claude Code plugin marketplace bundle
-
-For Korean documentation, see [README_KR.md](README_KR.md).
-
-## What Telos does
-
-Telos is built around three commands/skills:
-
-- `spec`: clarify requirements and write `SPEC.md`
-- `impl`: implement strictly from a frozen `SPEC.md`
-- `eval`: verify the implementation against the spec
-
-It also installs non-blocking hooks that warn when code is edited without a frozen `SPEC.md`.
-
-Telos treats the command entrypoint as a thin orchestrator. It keeps work in the current session by default and uses subagents only when they help isolate high-noise exploration or provide an independent evaluation pass. If a surface cannot support subagents, Telos falls back to the current session without skipping the spec or evaluation gates.
-
-## Requirements
-
-- Python 3.10+
-- Codex CLI for Codex plugin installation
-- Claude CLI / Claude Code for Claude plugin installation
-
-If a CLI is missing, Telos still copies the plugin files and prints the manual next step.
-
-## Installation
-
-Install the package from PyPI:
+Node.js 20+ is required.
 
 ```bash
-python3 -m pip install telos-kit
-```
-
-Install plugins:
-
-```bash
-telos install codex
-telos install claude
+npx telos-kit install all
+# or
+npm install -g telos-kit
 telos install all
 ```
 
-This repository also keeps shell wrappers for GitHub-based installation:
-
-```bash
-bash install.sh codex
-bash install.sh claude
-bash install.sh all
-```
-
-Those wrappers install the local package first when possible, then run the same CLI flow.
-
-## Installed plugin locations
-
-### Codex
-
-Telos installs the Codex plugin into:
-
-```text
-~/plugins/telos/
-~/.agents/plugins/marketplace.json
-```
-
-After installation or update, restart Codex completely and review the Telos hook with `/hooks`.
-
-Codex command surface:
-
-```text
-$spec
-$impl
-$eval
-```
-
-### Claude Code
-
-Telos installs the Claude marketplace bundle into:
-
-```text
-~/.telos/claude-marketplace/
-```
-
-The user plugin id is:
-
-```text
-telos@telos-kit
-```
-
-Claude command surface:
-
-```text
-/telos:spec
-/telos:impl
-/telos:eval
-```
-
-During installation, Telos removes its own legacy global Claude files and hook entries, but leaves unrelated user settings in place.
+Use `codex` or `claude` instead of `all` to install one integration. Restart the relevant client after installation.
 
 ## Workflow
 
-### Architecture
-
-Telos is designed around:
-
-- a thin orchestrator at the command entrypoint
-- optional workers for spec ambiguity checks or narrow repo exploration
-- an implementation worker for broad or noisy implementation search
-- an evaluator worker that stays independent from the implementation worker when needed
-
-The orchestrator should manage state transitions and handoffs, not re-implement or re-evaluate the work itself.
-
-### 1. Create or refine the spec
-
-Start with the spec command for feature work:
-
 ```text
-$spec
-/telos:spec
+spec → run → eval
 ```
 
-The spec flow asks focused questions, fills `SPEC.md`, and only marks the spec as `frozen` after the ambiguity check passes. It records the expected change surface, project-specific verification commands, applicable risk checks, and the Git baseline at freeze time. For small local work, `$spec quick` creates the same concise contract; high-risk work uses the full interview. The questioning loop stays in the main session by default. Telos uses a subagent only for narrow, high-noise exploration or the final ambiguity check.
-
-### 2. Implement from the frozen spec
-
-```text
-$impl
-/telos:impl
-```
-
-The implementation flow expects:
-
-- `SPEC.md` to exist in the current project root
-- the status to be `frozen`
-- acceptance criteria to be concrete enough to implement against
-
-The implementation flow reads `SPEC.md` first, then inspects the codebase to confirm or correct the first-pass scope and risk read. It maps changes to acceptance criteria and flags changes outside the declared surface or a stale baseline before widening scope. Telos keeps small, local changes in the main session and uses an implementation worker only when search scope or impact radius would otherwise leave a large trail of low-value exploration in the main context.
-
-### 3. Evaluate against the spec
-
-```text
-$eval
-/telos:eval
-```
-
-The evaluation flow runs:
-
-1. recorded, project-specific verification commands and mechanical checks first
-2. scope and semantic review against acceptance criteria and selected risks
-3. optional report-only lean pass for avoidable complexity
-4. optional consensus review for high-risk or uncertain cases
-
-The semantic review should stay independent from the implementation worker and should receive evidence, not implementation intent. For small, low-risk changes with compact evidence, the current session can perform the semantic pass directly.
-
-## Hooks
-
-Telos installs non-blocking hooks for code edits.
-
-Behavior:
-
-- if `SPEC.md` is missing, warn
-- if `SPEC.md` is still `draft`, warn
-- if the file edit is not code-like, do nothing
-
-These hooks are advisory. They do not block edits.
-
-## Updating
-
-There are two separate layers to update:
-
-1. the `telos-kit` package
-2. the installed plugin files in the user environment
-
-### Reapply plugin files from the current package
-
-Use:
+`run` inventories local `SKILL.md` files, ranks candidates from their declared metadata, and records each iteration in `.telos/run-state.json`. It stops for user direction when the approved Spec conflicts with the repository, scope must expand, a required capability is unavailable, or the iteration limit is reached.
 
 ```bash
-telos update codex
-telos update claude
-telos update all
+telos capabilities discover --project-root .
+telos capabilities route --project-root . --need "database migration testing"
+telos run status --project-root .
 ```
 
-`telos update` reuses the install flow. It reapplies the plugin files from the currently installed `telos-kit` package.
-
-### Upgrade the package, then reapply plugins
-
-To move to the latest published package first:
-
-```bash
-python3 -m pip install --upgrade telos-kit
-telos update all
-```
-
-### Check update status
-
-Use:
-
-```bash
-telos update-status codex
-telos update-status claude
-telos update-status all
-telos update-status all --json
-```
-
-Important: `update-status` compares the installed plugin against the versions recorded in a Telos repository checkout. By default it looks for:
-
-```text
-./src/telos_kit/kit_versions.json
-```
-
-That means it is most useful when run from this repository, or when `--project-root` points to a Telos checkout:
-
-```bash
-telos update-status all --project-root /path/to/telos
-```
-
-JSON output uses a per-target status object:
-
-```json
-[
-  {
-    "target": "codex",
-    "status": "up-to-date",
-    "installed_version": "0.4.0",
-    "latest_version": "0.4.0",
-    "update_available": false
-  }
-]
-```
-
-Possible status values:
-
-- `up-to-date`
-- `update-available`
-- `not-installed`
-- `unknown`
-
-## Version model
-
-Telos tracks separate versions for:
-
-- the Python package
-- the Codex plugin bundle
-- the Claude plugin bundle
-
-Installed plugins record their applied version in:
-
-```text
-.telos-version.json
-```
-
-The source of truth for packaged plugin versions in this repository is:
-
-```text
-src/telos_kit/kit_versions.json
-```
-
-## Repository layout
-
-```text
-src/telos_kit/
-  cli.py
-  installers.py
-  update_status.py
-  resources/
-    codex/telos/
-    claude-marketplace/plugins/telos/
-tests/
-install.sh
-```
+`$impl` and `/telos:impl` remain compatibility aliases for `run`.
 
 ## Development
 
-Run the test suite used by the package:
-
 ```bash
-PYTHONPATH=src python3 -m unittest
+npm ci
+npm test
+npm run check:release
+npm pack --dry-run
 ```
 
-Or run a narrower set while iterating:
-
-```bash
-PYTHONPATH=src python3 -m unittest tests.test_cli tests.test_installers tests.test_update_status tests.test_versions
-```
-
-Run the CLI from the repository without installing it globally:
-
-```bash
-PYTHONPATH=src python3 -m telos_kit --version
-PYTHONPATH=src python3 -m telos_kit install codex
-```
-
-## Release notes for maintainers
-
-When publishing a new version, keep these version sources aligned:
-
-- `src/telos_kit/__init__.py`
-- `src/telos_kit/kit_versions.json`
-- Codex plugin manifest version
-- Claude plugin manifest version
-
-The repository also includes release validation helpers under `scripts/`.
+The npm package ships the compiled Node CLI and both Codex and Claude Code plugin bundles. GitHub Actions test Node 20, 22, and 24, then publish releases to npm with provenance.
