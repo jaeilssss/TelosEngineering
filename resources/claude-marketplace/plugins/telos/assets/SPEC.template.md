@@ -47,6 +47,7 @@ Test strategy:
 - [ ] AC1:
 - [ ] AC2:
 - [ ] AC3:
+<!-- scope가 있으면: - [ ] AC4 [scopes: ios, android] ... 아래에 - Evidence [ios]: ... 및 - Evidence [android]: ...를 각각 기록한다. -->
 
 ## 9. 범위 밖 (Out of Scope)
 -

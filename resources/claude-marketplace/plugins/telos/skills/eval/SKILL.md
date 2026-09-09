@@ -16,7 +16,7 @@ $ARGUMENTS
 가능하면 먼저 `telos update-status claude --project-root .`를 실행한다. 메시지가 나오면 업데이트 권장을 먼저 보여준다.
 
 ## Stage 1 — Mechanical (LLM 없음, $0)
-SPEC.md의 Verification Plan에 기록된 명령을 먼저 실행하고, 이어 프로젝트에 맞는 기계 검증을 실행한다. Gradle/Maven 등 프로젝트의 실제 명령을 쓰며 Python 명령으로 대체하지 않는다. 파괴적이거나 네트워크를 쓰거나 효과가 불명확한 명령은 실행 전 사용자에게 확인한다.
+`.telos/project.yml`이 있으면 먼저 `telos verify --changed --project-root .`를 실행한다. scope 태그 AC를 승인하기 전 `telos evidence check --spec SPEC.md --project-root .`로 증거 존재를 확인하며, 증거의 사실성은 Eval이 판정한다.
 
 - 테스트: (예) `./gradlew test --tests ...` / `./mvnw test -Dtest=...` / `npm test`
 - 테스트: (예) `pytest` / `npm test` / `go test ./...`

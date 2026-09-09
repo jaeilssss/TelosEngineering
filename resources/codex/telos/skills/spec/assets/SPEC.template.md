@@ -46,6 +46,7 @@ Test strategy:
 - [ ] AC1:
 - [ ] AC2:
 - [ ] AC3:
+<!-- Scoped AC example: - [ ] AC4 [scopes: ios, android] ... then - Evidence [ios]: ... and - Evidence [android]: ... -->
 
 ## 9. Out of Scope
 -

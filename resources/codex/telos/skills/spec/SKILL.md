@@ -19,6 +19,7 @@ Treat the text after `$spec` as the initial task input. `$spec quick` is allowed
 4. Before drafting the spec, read the project's TDD decision guidance from `AGENTS.md` when it exists. If `AGENTS.md` is absent, decide from the nature of the work: default to `TDD` for bug fixes and behavior-changing code, use `test-after` when tests are still appropriate but writing them first would be inefficient, and use `none` only for work like docs or prompt text where tests are not a meaningful fit.
 5. Decide and record `Test strategy` in `SPEC.md` as exactly one of `TDD`, `test-after`, or `none`. If you choose `none`, include the reason on the same line.
 6. Fill the goal, constraints, test strategy, expected change surface, verification plan, risk profile, acceptance criteria, out-of-scope items, and open questions.
+   - Use `.telos/project.yml` `risks[]` for project-specific mechanical risks. When it declares scopes, write `[scopes: name-a, name-b]` on a multi-scope AC and add one `- Evidence [name]: ...` line per scope.
    - Expected change surface names allowed files/areas and whether dependency, API, or schema changes are permitted.
    - Verification plan records the project's actual commands and manual checks. It is stack-neutral: for example, a Spring project may use `./gradlew test --tests ...` or `./mvnw test -Dtest=...`.
    - Select a risk profile only when applicable: auth/authorization, database migration, public API, payment/data deletion, or concurrency. Record the falsifying check for each selected risk.

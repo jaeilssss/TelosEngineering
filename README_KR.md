@@ -63,6 +63,36 @@ spec → run → eval
 
 `run`은 iteration을 `.telos/run-state.json`에 기록합니다. 범위를 넓혀야 하거나, Spec과 저장소가 충돌하거나, 적절한 Capability가 없거나, 반복 제한에 도달하면 사용자에게 방향을 요청합니다.
 
+## 프로젝트 검증과 scope 증거
+
+`.telos/project.yml`에는 프로젝트별 기계 검증을 기록합니다. `risks`는 변경 경로와 일치할 때만 실행되고, `scopes`는 인수 기준의 검증 범위를 선언합니다.
+
+```yaml
+modules:
+  - name: web
+    paths: ["src/**"]
+    verify: ["npm test"]
+risks:
+  - id: secret-literal
+    when: ["src/**"]
+    check: grep -rnE '(token|secret)=' src/
+    fail_when: found
+scopes: ["ios", "android"]
+```
+
+scope가 있는 AC에는 모든 scope별 증거를 남기고 존재 여부를 검사합니다. 증거가 실제로 충분한지는 최종 Eval이 계속 판단합니다.
+
+```markdown
+- [ ] AC1 [scopes: ios, android] 로그인이 성공한다.
+  - Evidence [ios]: iOS E2E 테스트 통과.
+  - Evidence [android]: Android E2E 테스트 통과.
+```
+
+```bash
+telos verify --changed --project-root .
+telos evidence check --spec SPEC.md --project-root .
+```
+
 ```bash
 telos capabilities discover --project-root .
 telos capabilities route --project-root . --need "database migration testing"

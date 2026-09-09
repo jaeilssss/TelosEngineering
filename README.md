@@ -63,9 +63,49 @@ spec → run → eval
 
 `run` records iterations in `.telos/run-state.json`. It stops for user direction when scope must expand, the Spec conflicts with the repository, no suitable capability is available, or the iteration limit is reached.
 
+## Project verification and scope evidence
+
+`.telos/project.yml` keeps repository-specific checks out of prompts. Optional `risks` run only for matching changed paths; `scopes` declares coverage dimensions used by acceptance criteria.
+
+```yaml
+modules:
+  - name: web
+    paths: ["src/**"]
+    verify: ["npm test"]
+risks:
+  - id: secret-literal
+    when: ["src/**"]
+    check: grep -rnE '(token|secret)=' src/
+    fail_when: found
+scopes: ["ios", "android"]
+```
+
+For a scoped criterion, provide evidence for every scope, then validate its presence. Telos Eval still decides whether that evidence is sufficient.
+
+```markdown
+- [ ] AC1 [scopes: ios, android] Login succeeds.
+  - Evidence [ios]: iOS end-to-end test passed.
+  - Evidence [android]: Android end-to-end test passed.
+```
+
+```bash
+telos verify --changed --project-root .
+telos evidence check --spec SPEC.md --project-root .
+```
+
+Projects can make mechanical verification deterministic with a committed `.telos/project.yml`. `telos verify --changed` selects every module whose paths match tracked changes from `HEAD`, then runs only that module's declared commands. An empty `verify` list requires manual verification and cannot pass automatically.
+
+```yaml
+modules:
+  - name: web
+    paths: ["src/**"]
+    verify: ["npm test", "npm run lint"]
+```
+
 ```bash
 telos capabilities discover --project-root .
 telos capabilities route --project-root . --need "database migration testing"
+telos verify --changed --project-root .
 telos run status --project-root .
 ```
 
