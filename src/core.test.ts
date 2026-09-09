@@ -4,17 +4,69 @@ import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { discoverCapabilities, routeCapabilities } from "./capabilities.js";
-import { recordResult, retryRun, startRun } from "./run-state.js";
+import { loadRunState, recordResult, retryRun, RunStateError, startRun, unblockRun } from "./run-state.js";
 import { checkEvidence, VerificationError, verifyChanged } from "./verification.js";
+import { install } from "./installers.js";
 
-test("discovers and routes installed skills without provider allowlists", () => {
-  const root = mkdtempSync(join(tmpdir(), "telos-")); const home = join(root, "home"); const skill = join(home, ".codex", "skills", "migration"); mkdirSync(skill, { recursive: true }); writeFileSync(join(skill, "SKILL.md"), '---\nname: migration-review\ndescription: "Review PostgreSQL migration safety"\n---\n');
-  const capabilities = discoverCapabilities(join(root, "project"), home);
-  assert.equal(capabilities[0].id, "migration-review"); assert.equal(routeCapabilities(capabilities, "PostgreSQL migration")[0].score, 2);
+function featureSpec(root: string, slug: string, content = "# Feature SPEC\n") {
+  const path = join(root, ".telos", "specs", slug, "SPEC.md");
+  mkdirSync(join(path, ".."), { recursive: true });
+  writeFileSync(path, content);
+}
+
+test("keeps runs independent for feature SPEC slugs", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-"));
+  featureSpec(root, "first-feature"); featureSpec(root, "second-feature");
+  startRun(root, "first-feature", ["testing"], 2);
+  startRun(root, "second-feature", ["debugging"], 2);
+  recordResult(root, "first-feature", "rejected", "test failed");
+  assert.equal(retryRun(root, "first-feature", ["testing"]).iteration, 2);
+  assert.equal(loadRunState(root, "second-feature")?.status, "running");
+  assert.equal(existsSync(join(root, ".telos", "runs", "first-feature.json")), true);
+  assert.equal(existsSync(join(root, ".telos", "runs", "second-feature.json")), true);
 });
-test("records an Eval failure and bounded retry loop", () => {
-  const root = mkdtempSync(join(tmpdir(), "telos-")); startRun(root, ["testing"], 2); recordResult(root, "rejected", "test failed"); assert.equal(retryRun(root, ["debugging"]).iteration, 2); recordResult(root, "approved", "all AC pass");
+
+test("rejects invalid slugs and missing Feature SPECs", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-"));
+  assert.throws(() => startRun(root, "Invalid_slug", [], 1), (error: unknown) => error instanceof RunStateError && /slug/.test(error.message));
+  assert.throws(() => startRun(root, "missing-spec", [], 1), (error: unknown) => error instanceof RunStateError && /feature SPEC is missing/.test(error.message));
+  assert.throws(() => loadRunState(root, "missing-spec"), (error: unknown) => error instanceof RunStateError && /feature SPEC is missing/.test(error.message));
+  assert.throws(() => execFileSync(process.execPath, [join(process.cwd(), "dist", "cli.js"), "run", "start", "--project-root", root], { encoding: "utf8", stdio: "pipe" }), (error: unknown) => /--spec <slug> is required/.test((error as { stderr: string }).stderr));
+});
+
+test("blocks state transitions when the Feature SPEC changes", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-")); featureSpec(root, "changed-spec", "original");
+  startRun(root, "changed-spec", [], 2); writeFileSync(join(root, ".telos", "specs", "changed-spec", "SPEC.md"), "changed");
+  assert.throws(() => recordResult(root, "changed-spec", "rejected", "failed"), /SPEC changed/);
+  const state = loadRunState(root, "changed-spec")!; state.status = "rejected"; writeFileSync(join(root, ".telos", "runs", "changed-spec.json"), JSON.stringify(state));
+  assert.throws(() => retryRun(root, "changed-spec", []), /SPEC changed/);
+  state.status = "blocked"; writeFileSync(join(root, ".telos", "runs", "changed-spec.json"), JSON.stringify(state));
+  assert.throws(() => unblockRun(root, "changed-spec", "user confirmed"), /SPEC changed/);
+});
+
+test("unblocks only a matching blocked run and writes Eval reports", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-")); featureSpec(root, "blocked-feature");
+  startRun(root, "blocked-feature", [], 2); recordResult(root, "blocked-feature", "blocked", "waiting for access");
+  const report = readFileSync(join(root, ".telos", "evals", "blocked-feature", "1.md"), "utf8");
+  assert.match(report, /Slug: blocked-feature/); assert.match(report, /Iteration: 1/); assert.match(report, /Status: blocked/); assert.match(report, /Summary: waiting for access/); assert.match(report, /SPEC hash: [a-f0-9]{64}/); assert.match(report, /Timestamp:/);
+  assert.equal(unblockRun(root, "blocked-feature", "access granted").status, "running");
+  assert.match(JSON.stringify(loadRunState(root, "blocked-feature")!.history), /access granted/);
+  assert.throws(() => unblockRun(root, "blocked-feature", "again"), /blocked Telos run/);
+});
+
+test("records the active Feature SPEC and both hooks gate matching module paths", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-hook-"));
+  featureSpec(root, "hook-feature", "Status: frozen\nTest strategy: test-after\n");
+  mkdirSync(join(root, ".telos"), { recursive: true });
+  writeFileSync(join(root, ".telos", "project.yml"), "modules:\n  - name: app\n    paths: [\"src/**\"]\n    verify: [\"npm test\"]\n");
+  startRun(root, "hook-feature", [], 1);
+  assert.equal(readFileSync(join(root, ".telos", "active"), "utf8"), "hook-feature\n");
+  const input = JSON.stringify({ cwd: root, tool_input: { file_path: "src/App.kt" } });
+  for (const script of [join(process.cwd(), "resources", "codex", "telos", "scripts", "spec_gate.mjs"), join(process.cwd(), "resources", "claude-marketplace", "plugins", "telos", "scripts", "spec_gate.mjs")]) assert.equal(execFileSync(process.execPath, [script], { input, encoding: "utf8" }), "");
+  writeFileSync(join(root, ".telos", "specs", "hook-feature", "SPEC.md"), "Status: draft\nTest strategy: test-after\n");
+  for (const script of [join(process.cwd(), "resources", "codex", "telos", "scripts", "spec_gate.mjs"), join(process.cwd(), "resources", "claude-marketplace", "plugins", "telos", "scripts", "spec_gate.mjs")]) assert.match(execFileSync(process.execPath, [script], { input, encoding: "utf8" }), /not frozen/);
+  const unrelated = JSON.stringify({ cwd: root, tool_input: { file_path: "docs/readme.md" } });
+  for (const script of [join(process.cwd(), "resources", "codex", "telos", "scripts", "spec_gate.mjs"), join(process.cwd(), "resources", "claude-marketplace", "plugins", "telos", "scripts", "spec_gate.mjs")]) assert.equal(execFileSync(process.execPath, [script], { input: unrelated, encoding: "utf8" }), "");
 });
 
 function repository(files: Record<string, string>, project = "") {
@@ -142,4 +194,28 @@ test("requires evidence for every declared scope", () => {
   expectVerificationError(() => checkEvidence(root, spec), /invalid or undeclared/);
   writeFileSync(spec, "- [ ] AC1 [scopes: ios works\n");
   expectVerificationError(() => checkEvidence(root, spec), /malformed scope tag/);
+});
+
+test("installs Telos without replacing an existing Claude marketplace", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-install-")); const home = join(root, "home");
+  const marketplace = join(home, ".telos", "claude-marketplace"); mkdirSync(join(marketplace, "plugins", "other"), { recursive: true }); writeFileSync(join(marketplace, "plugins", "other", "keep.txt"), "keep");
+  mkdirSync(join(marketplace, ".claude-plugin"), { recursive: true }); writeFileSync(join(marketplace, ".claude-plugin", "marketplace.json"), JSON.stringify({ name: "personal", plugins: [{ name: "other", version: "1.0.0" }] }));
+  install("claude", home); install("codex", home);
+  assert.equal(existsSync(join(marketplace, "plugins", "other", "keep.txt")), true);
+  assert.equal(existsSync(join(marketplace, "plugins", "telos", "skills", "run", "SKILL.md")), true);
+  assert.match(readFileSync(join(marketplace, "plugins", "telos", "hooks", "hooks.json"), "utf8"), /"command": "node"/);
+  assert.match(readFileSync(join(home, "plugins", "telos", "hooks", "hooks.json"), "utf8"), /node \\"\$\{PLUGIN_ROOT\}/);
+});
+
+test("uses project configuration for distinct frontend and JVM-style module paths", () => {
+  const root = repository({ "web/App.tsx": "initial", "core/App.kt": "initial" }, `modules:
+  - name: web
+    paths: ["web/**"]
+    verify: ["node -e \\"require('node:fs').appendFileSync('commands.log', 'web\\\\n')\\""]
+  - name: core
+    paths: ["core/**"]
+    verify: ["node -e \\"require('node:fs').appendFileSync('commands.log', 'core\\\\n')\\""]
+`);
+  writeFileSync(join(root, "web", "App.tsx"), "changed"); assert.deepEqual(verifyChanged(root).modules, ["web"]);
+  writeFileSync(join(root, "core", "App.kt"), "changed"); assert.deepEqual(verifyChanged(root).modules, ["web", "core"]);
 });

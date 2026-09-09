@@ -2,7 +2,7 @@
 
 > A spec-driven harness that orchestrates the right capabilities until an approved goal is verified.
 
-Telos is an open-source development harness for Codex and Claude Code. It turns a human goal into a concrete contract, discovers the capabilities available in the current environment, and manages implementation, testing, and evaluation until the contract is verified.
+Telos is an open-source development harness for Codex and Claude Code. It turns a human goal into a concrete contract and manages implementation, testing, and evaluation until the contract is verified.
 
 Telos does not try to replace every specialist skill. Its role is to decide **what capability is needed now**, provide the right context, and keep the final decision tied to the approved Spec.
 
@@ -57,11 +57,21 @@ telos update all
 spec → run → eval
 ```
 
-1. `$spec` / `/telos:spec` creates a frozen `SPEC.md` with measurable acceptance criteria.
-2. `$run` / `/telos:run` discovers local capabilities and manages the implementation → test → evaluation loop.
+1. `$spec` / `/telos:spec` creates a frozen Feature SPEC at `.telos/specs/<slug>/SPEC.md` with measurable acceptance criteria.
+2. `$run` / `/telos:run` manages the implementation → test → evaluation loop.
 3. `$eval` / `/telos:eval` approves, rejects, or marks the result uncertain using evidence from the frozen Spec.
 
-`run` records iterations in `.telos/run-state.json`. It stops for user direction when scope must expand, the Spec conflicts with the repository, no suitable capability is available, or the iteration limit is reached.
+Start every feature run with an explicit slug. Its local state and Eval reports stay separate from other feature contracts.
+
+```bash
+telos run start --spec payment-flow --project-root . --capability implementation
+telos run record --spec payment-flow --project-root . --status approved --summary "all acceptance criteria pass"
+telos run status --spec payment-flow --project-root .
+```
+
+`run` records iterations in `.telos/runs/<slug>.json` and Eval results in `.telos/evals/<slug>/<iteration>.md`. It stops for user direction when scope must expand, the Spec conflicts with the repository, no suitable capability is available, or the iteration limit is reached.
+
+`telos run start` also records its slug in committed `.telos/active`. The installed hooks use that pointer to gate only paths declared by `.telos/project.yml` against the active Feature SPEC.
 
 ## Project verification and scope evidence
 
@@ -90,7 +100,7 @@ For a scoped criterion, provide evidence for every scope, then validate its pres
 
 ```bash
 telos verify --changed --project-root .
-telos evidence check --spec SPEC.md --project-root .
+telos evidence check --spec .telos/specs/payment-flow/SPEC.md --project-root .
 ```
 
 Projects can make mechanical verification deterministic with a committed `.telos/project.yml`. `telos verify --changed` selects every module whose paths match tracked changes from `HEAD`, then runs only that module's declared commands. An empty `verify` list requires manual verification and cannot pass automatically.
@@ -103,13 +113,10 @@ modules:
 ```
 
 ```bash
-telos capabilities discover --project-root .
-telos capabilities route --project-root . --need "database migration testing"
 telos verify --changed --project-root .
-telos run status --project-root .
+telos run status --spec payment-flow --project-root .
 ```
 
-`$impl` and `/telos:impl` remain compatibility aliases for `run`.
 
 ## Principles
 

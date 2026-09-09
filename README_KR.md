@@ -57,11 +57,21 @@ telos update all
 spec → run → eval
 ```
 
-1. `$spec` / `/telos:spec`은 목표를 측정 가능한 인수 기준이 담긴 frozen `SPEC.md`로 만듭니다.
-2. `$run` / `/telos:run`은 로컬 Capability를 발견·선택하고 구현 → 테스트 → 평가 Loop를 관리합니다.
+1. `$spec` / `/telos:spec`은 목표를 측정 가능한 인수 기준이 담긴 `.telos/specs/<slug>/SPEC.md`로 만듭니다.
+2. `$run` / `/telos:run`은 구현 → 테스트 → 평가 Loop를 관리합니다.
 3. `$eval` / `/telos:eval`은 frozen Spec을 기준으로 근거를 확인해 approved, rejected, uncertain을 판정합니다.
 
-`run`은 iteration을 `.telos/run-state.json`에 기록합니다. 범위를 넓혀야 하거나, Spec과 저장소가 충돌하거나, 적절한 Capability가 없거나, 반복 제한에 도달하면 사용자에게 방향을 요청합니다.
+기능 작업은 항상 명시적인 slug로 시작합니다. 기능별 상태와 Eval 리포트는 서로 분리됩니다.
+
+```bash
+telos run start --spec payment-flow --project-root . --capability implementation
+telos run record --spec payment-flow --project-root . --status approved --summary "모든 인수 기준 통과"
+telos run status --spec payment-flow --project-root .
+```
+
+`run`은 iteration을 `.telos/runs/<slug>.json`에, Eval 결과를 `.telos/evals/<slug>/<iteration>.md`에 기록합니다. 범위를 넓혀야 하거나, Spec과 저장소가 충돌하거나, 적절한 Capability가 없거나, 반복 제한에 도달하면 사용자에게 방향을 요청합니다.
+
+`telos run start`는 선택한 slug를 커밋 대상인 `.telos/active`에도 기록합니다. 설치된 훅은 이 포인터와 `.telos/project.yml`의 경로 설정을 사용해, 활성 Feature SPEC에만 게이트를 적용합니다.
 
 ## 프로젝트 검증과 scope 증거
 
@@ -90,16 +100,13 @@ scope가 있는 AC에는 모든 scope별 증거를 남기고 존재 여부를 �
 
 ```bash
 telos verify --changed --project-root .
-telos evidence check --spec SPEC.md --project-root .
+telos evidence check --spec .telos/specs/payment-flow/SPEC.md --project-root .
 ```
 
 ```bash
-telos capabilities discover --project-root .
-telos capabilities route --project-root . --need "database migration testing"
-telos run status --project-root .
+telos run status --spec payment-flow --project-root .
 ```
 
-`$impl`과 `/telos:impl`은 기존 사용자를 위한 `run` 호환 별칭입니다.
 
 ## 원칙
 

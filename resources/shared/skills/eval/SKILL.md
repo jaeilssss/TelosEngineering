@@ -5,18 +5,18 @@ description: "Evaluate implementation against SPEC.md acceptance criteria. Use w
 
 # Spec Evaluation
 
-Evaluate the current implementation against `SPEC.md`. Do not implement fixes while evaluating unless the user explicitly asks after the evaluation.
+Evaluate the selected Feature SPEC at `.telos/specs/<slug>/SPEC.md`. Do not implement fixes while evaluating unless the user explicitly asks after the evaluation.
 
 Treat this skill as the evaluation orchestrator. The semantic judge should be independent from the capability that implemented the change.
 
 ## Workflow
 
 1. Before evaluation, run `telos update-status codex --project-root .` when the `telos` CLI is available. If it prints a message, show that update recommendation before continuing.
-2. Read `SPEC.md` and extract acceptance criteria.
-3. Run `telos verify --changed --project-root .` first when `.telos/project.yml` exists, then run recorded commands. Before approving a scoped AC, run `telos evidence check --spec SPEC.md --project-root .`; Eval still judges whether the evidence is true.
+2. Read `.telos/specs/<slug>/SPEC.md` and extract acceptance criteria.
+3. Run `telos verify --changed --project-root .` first. Before approving a scoped AC, run `telos evidence check --spec .telos/specs/<slug>/SPEC.md --project-root .`; Eval still judges whether the evidence is true.
 4. Stop if mechanical checks fail; report the command and failure.
 5. Compare the diff against Expected Change Surface. An unexpected file, dependency, API, or schema change is `uncertain` until the user confirms the expanded scope.
-6. Run a semantic evaluation pass for each acceptance criterion and each selected risk-profile check.
+6. Run a semantic evaluation pass for each acceptance criterion and each matching project risk check.
 7. If the user requests a lean pass, report only avoidable complexity: AC-unmapped changes, unnecessary dependencies, speculative abstractions, and dead code. It must not apply changes or replace correctness, security, or accessibility review.
 8. Report `approved`, `rejected`, or `uncertain`.
 9. Include concrete evidence: file paths, commands, test names, or observed behavior.
