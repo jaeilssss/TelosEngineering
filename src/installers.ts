@@ -1,12 +1,13 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { spawnSync } from "node:child_process";
 import { VERSION } from "./version.js";
 
 export type Target = "codex" | "claude" | "all";
-const resourceRoot = new URL("./resources", import.meta.url).pathname;
+const resourceRoot = fileURLToPath(new URL("./resources", import.meta.url));
 const require = createRequire(import.meta.url);
 const readJson = (path: string): Record<string, any> => existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
 const writeJson = (path: string, value: unknown) => { mkdirSync(join(path, ".."), { recursive: true }); writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`); };
