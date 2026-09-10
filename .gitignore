@@ -3,5 +3,10 @@ __pycache__/
 dist/
 build/
 node_modules/
+.telos/run-state.json
+.telos/runs/
+.telos/evals/
+.telos/active
+.telos/hook-warnings/
 telos-v2-core-direction.md
 *.egg-info/

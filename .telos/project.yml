@@ -1,0 +1,4 @@
+modules:
+  - name: core
+    paths: ["src/**", "scripts/**", ".telos/project.yml", "package.json", "tsconfig.json"]
+    verify: ["npm test", "npm run check:release"]

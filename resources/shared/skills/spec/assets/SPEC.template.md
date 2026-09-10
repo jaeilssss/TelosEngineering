@@ -33,23 +33,19 @@ Test strategy:
 - dependency/API/schema changes:
 
 ## 6. Verification Plan
-<!-- Commands and manual checks that demonstrate the acceptance criteria. Use the project's stack, e.g. ./gradlew test --tests ..., ./mvnw test -Dtest=..., npm test. -->
-- command:
+<!-- Use `telos verify --changed --project-root .` for configured checks. Record only additional manual checks here. -->
 - manual check:
 
-## 7. Risk Profile
-<!-- Select only applicable risks: auth/authorization, database migration, public API, payment/data deletion, concurrency. For each, state the check that must pass. -->
--
-
-## 8. Acceptance Criteria
+## 7. Acceptance Criteria
 <!-- Measurable statements that $eval can score. -->
 - [ ] AC1:
 - [ ] AC2:
 - [ ] AC3:
+<!-- Scoped AC example: - [ ] AC4 [scopes: ios, android] ... then - Evidence [ios]: ... and - Evidence [android]: ... -->
 
-## 9. Out of Scope
+## 8. Out of Scope
 -
 
-## 10. Open Questions
+## 9. Open Questions
 <!-- Must be empty before frozen. -->
 -

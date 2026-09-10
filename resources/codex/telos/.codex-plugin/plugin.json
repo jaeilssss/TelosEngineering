@@ -8,15 +8,16 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Telos",
-    "shortDescription": "Use $spec, $run, and $eval with SPEC.md.",
-    "longDescription": "Adds global Telos V2 skills: $spec creates a frozen goal contract, $run discovers and orchestrates available capabilities, and $eval verifies the result.",
+    "shortDescription": "Use $spec, $run, $eval, and $review.",
+    "longDescription": "Adds Telos V2 skills: $spec freezes a goal contract, $run manages its bounded loop, $eval verifies evidence, and $review proposes prevention from rejection history.",
     "developerName": "Telos",
     "category": "Productivity",
     "capabilities": ["Write"],
     "defaultPrompt": [
       "$spec \"만들 기능 설명\"",
       "$run",
-      "$eval"
+      "$eval",
+      "$review"
     ]
   }
 }
