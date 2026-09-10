@@ -1,10 +1,23 @@
-import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
+
+let parseYaml;
+try { ({ parse: parseYaml } = await import("yaml")); }
+catch { ({ parse: parseYaml } = await import("../vendor/yaml/dist/index.js")); }
 
 const input = (() => { try { return JSON.parse(readFileSync(0, "utf8")); } catch { return {}; } })();
 const root = resolve(input.cwd ?? process.env.CLAUDE_PROJECT_DIR ?? process.cwd());
 const paths = [input.tool_input?.file_path ?? input.tool_input?.path].filter(Boolean);
-const warn = (message) => console.log(JSON.stringify({ systemMessage: message }));
+const emit = (message) => console.log(JSON.stringify({ systemMessage: message }));
+
+function warnOnce(category, message) {
+  const session = input.session_id ?? input.sessionId;
+  if (!session) { emit(message); return; }
+  const directory = join(root, ".telos", "hook-warnings"); mkdirSync(directory, { recursive: true });
+  const marker = join(directory, createHash("sha256").update(`${session}:${category}`).digest("hex"));
+  try { writeFileSync(marker, "", { flag: "wx" }); emit(message); } catch (error) { if (error.code !== "EEXIST") emit(message); }
+}
 
 function globMatches(pattern, path) {
   let expression = "^";
@@ -17,32 +30,38 @@ function globMatches(pattern, path) {
   }
   return new RegExp(`${expression}$`).test(path);
 }
+
 function projectPaths() {
   const path = join(root, ".telos", "project.yml");
-  if (!existsSync(path)) return [];
+  if (!existsSync(path)) return { error: ".telos/project.yml is missing; run `telos init --project-root .`" };
+  let config;
+  try { config = parseYaml(readFileSync(path, "utf8")); }
+  catch (error) { return { error: `.telos/project.yml is invalid YAML: ${error.message}` }; }
+  if (!config || !Array.isArray(config.modules) || config.modules.length === 0) return { error: ".telos/project.yml must define at least one module" };
   const patterns = [];
-  const lines = readFileSync(path, "utf8").split(/\r?\n/);
-  for (let index = 0; index < lines.length; index += 1) {
-    const field = lines[index].match(/^\s+paths:\s*(.*)$/);
-    if (!field) continue;
-    if (field[1].startsWith("[")) { try { patterns.push(...JSON.parse(field[1])); } catch { return []; } continue; }
-    for (index += 1; index < lines.length; index += 1) { const item = lines[index].match(/^\s+-\s+(.+)$/); if (!item) { index -= 1; break; } patterns.push(item[1].trim().replace(/^['"]|['"]$/g, "")); }
+  for (const module of config.modules) {
+    if (!Array.isArray(module?.paths) || module.paths.length === 0 || module.paths.some((item) => typeof item !== "string" || !item.trim())) return { error: `.telos/project.yml module ${module?.name ?? "<unnamed>"} paths must contain non-empty strings` };
+    patterns.push(...module.paths);
   }
-  return patterns.filter((pattern) => typeof pattern === "string");
+  return { patterns };
 }
+
+if (paths.length === 0) process.exit(0);
+const configured = projectPaths();
+if (configured.error) { warnOnce("project-config", `spec-first: ${configured.error}`); process.exit(0); }
 const changed = paths.map((path) => relative(root, resolve(root, path)).replaceAll("\\", "/")).filter((path) => path && !path.startsWith("../"));
-if (!changed.some((path) => projectPaths().some((pattern) => globMatches(pattern, path)))) process.exit(0);
+if (!changed.some((path) => configured.patterns.some((pattern) => globMatches(pattern, path)))) process.exit(0);
 
 const activePath = join(root, ".telos", "active");
 const slug = existsSync(activePath) ? readFileSync(activePath, "utf8").trim() : "";
-if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) warn("spec-first: .telos/active must contain the active Feature SPEC slug. Start a run with `telos run start --spec <slug>`. ");
+if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) emit("spec-first: .telos/active must contain the active Feature SPEC slug. Start a run with `telos run start --spec <slug>`. ");
 else {
   const specPath = join(root, ".telos", "specs", slug, "SPEC.md");
-  if (!existsSync(specPath)) warn(`spec-first: active Feature SPEC is missing: .telos/specs/${slug}/SPEC.md`);
+  if (!existsSync(specPath)) emit(`spec-first: active Feature SPEC is missing: .telos/specs/${slug}/SPEC.md`);
   else {
     const text = readFileSync(specPath, "utf8");
     const status = text.split("\n").find((line) => /^(status|상태):/i.test(line.trim()))?.toLowerCase() ?? "";
-    if (!status.includes("frozen") || status.includes("draft")) warn(`spec-first: active Feature SPEC (${slug}) is not frozen.`);
-    else if (!text.split("\n").some((line) => /^(test strategy|테스트 전략):/i.test(line.trim()) && line.split(":")[1]?.trim())) warn(`spec-first: active Feature SPEC (${slug}) must record a non-empty Test strategy.`);
+    if (!status.includes("frozen") || status.includes("draft")) emit(`spec-first: active Feature SPEC (${slug}) is not frozen.`);
+    else if (!text.split("\n").some((line) => /^(test strategy|테스트 전략):/i.test(line.trim()) && line.split(":")[1]?.trim())) emit(`spec-first: active Feature SPEC (${slug}) must record a non-empty Test strategy.`);
   }
 }

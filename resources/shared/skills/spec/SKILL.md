@@ -13,7 +13,7 @@ Treat the text after `$spec` as the initial task input.
 
 ## Workflow
 
-1. Before the main workflow, run `telos update-status codex --project-root .` when the `telos` CLI is available. If it prints a message, show that update recommendation before continuing.
+1. Before the main workflow, run `telos update-status codex --project-root .` in Codex or `telos update-status claude --project-root .` in Claude Code when the CLI is available. If it prints a message, show that update recommendation before continuing.
 2. Ask 1-3 focused questions at a time.
 3. Define ontology first: clarify the key nouns before discussing implementation.
 4. Before drafting the spec, read the project's TDD decision guidance from `AGENTS.md` when it exists. If `AGENTS.md` is absent, decide from the nature of the work: default to `TDD` for bug fixes and behavior-changing code, use `test-after` when tests are still appropriate but writing them first would be inefficient, and use `none` only for work like docs or prompt text where tests are not a meaningful fit.

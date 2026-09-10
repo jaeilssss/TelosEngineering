@@ -1,9 +1,21 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { VerificationAttempt, worktreeFingerprint } from "./verification.js";
 
 export type EvalStatus = "approved" | "rejected" | "uncertain" | "blocked";
-export interface RunState { status: "running" | "complete" | EvalStatus; maxIterations: number; iteration: number; startedAt: string; specHash: string; history: Array<Record<string, unknown>>; }
+export interface VerificationSnapshot { at: string; specHash: string; iteration: number; fingerprint: string; result: VerificationAttempt; }
+export interface RunState {
+  status: "running" | "complete" | EvalStatus;
+  maxIterations: number;
+  iteration: number;
+  startedAt: string;
+  runId: string;
+  specHash: string;
+  history: Array<Record<string, unknown>>;
+  latestVerification?: VerificationSnapshot;
+}
+
 const now = () => new Date().toISOString();
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const pathFor = (root: string, slug: string) => join(root, ".telos", "runs", `${slug}.json`);
@@ -15,21 +27,26 @@ export class RunStateError extends Error {}
 function requireSlug(slug: string): void {
   if (!slugPattern.test(slug)) throw new RunStateError("spec slug must contain lowercase letters, numbers, and hyphens only");
 }
+
 function currentSpecHash(root: string, slug: string): string {
   const path = specPathFor(root, slug);
   if (!existsSync(path)) throw new RunStateError(`feature SPEC is missing: .telos/specs/${slug}/SPEC.md`);
   return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
+
 function ensureMatchingSpec(root: string, slug: string, state: RunState): void {
   if (state.specHash !== currentSpecHash(root, slug)) throw new RunStateError("feature SPEC changed since this run started; start a new run");
 }
+
 export function loadRunState(root: string, slug: string): RunState | undefined {
   requireSlug(slug);
   currentSpecHash(root, slug);
   const path = pathFor(root, slug);
   if (!existsSync(path)) return undefined;
-  try { return JSON.parse(readFileSync(path, "utf8")) as RunState; } catch { throw new RunStateError("cannot read run state"); }
+  try { return JSON.parse(readFileSync(path, "utf8")) as RunState; }
+  catch { throw new RunStateError("cannot read run state"); }
 }
+
 function save(root: string, slug: string, state: RunState): RunState {
   const path = pathFor(root, slug);
   mkdirSync(join(root, ".telos", "runs"), { recursive: true });
@@ -38,27 +55,122 @@ function save(root: string, slug: string, state: RunState): RunState {
   renameSync(temporary, path);
   return state;
 }
+
+function archivePreviousRun(root: string, slug: string, timestamp: string): void {
+  const statePath = pathFor(root, slug);
+  if (!existsSync(statePath)) return;
+  const base = `${slug}-${timestamp.replace(/[.:]/g, "-")}`;
+  const runArchive = join(root, ".telos", "runs", "archive");
+  const evalArchive = join(root, ".telos", "evals", "archive");
+  mkdirSync(runArchive, { recursive: true });
+  let counter = 0;
+  let id = `${base}-${counter}`;
+  while (existsSync(join(runArchive, `${id}.json`)) || existsSync(join(evalArchive, id))) { counter += 1; id = `${base}-${counter}`; }
+  renameSync(statePath, join(runArchive, `${id}.json`));
+  const evalPath = join(root, ".telos", "evals", slug);
+  if (existsSync(evalPath)) { mkdirSync(evalArchive, { recursive: true }); renameSync(evalPath, join(evalArchive, id)); }
+}
+
 export function startRun(root: string, slug: string, capabilities: string[], maxIterations = 5): RunState {
   requireSlug(slug);
-  if (loadRunState(root, slug)?.status === "running") throw new RunStateError("a Telos run is already active for this spec");
+  const previous = loadRunState(root, slug);
+  if (previous?.status === "running") throw new RunStateError("a Telos run is already active for this spec");
   if (!Number.isInteger(maxIterations) || maxIterations < 1) throw new RunStateError("max iterations must be at least 1");
   const timestamp = now();
-  const state: RunState = { status: "running", maxIterations, iteration: 1, startedAt: timestamp, specHash: currentSpecHash(root, slug), history: [{ iteration: 1, capabilities, status: "started", at: timestamp }] };
+  if (previous) archivePreviousRun(root, slug, timestamp);
+  const state: RunState = {
+    status: "running", maxIterations, iteration: 1, startedAt: timestamp, runId: `${slug}-${timestamp}`,
+    specHash: currentSpecHash(root, slug), history: [{ iteration: 1, capabilities, status: "started", at: timestamp }]
+  };
   save(root, slug, state);
   writeFileSync(activePathFor(root), `${slug}\n`);
   return state;
 }
+
+export function storeVerificationSnapshot(root: string, result: VerificationAttempt): boolean {
+  const activePath = activePathFor(root);
+  if (!existsSync(activePath)) return false;
+  const slug = readFileSync(activePath, "utf8").trim();
+  if (!slugPattern.test(slug)) return false;
+  const state = loadRunState(root, slug);
+  if (!state || state.status !== "running") return false;
+  ensureMatchingSpec(root, slug, state);
+  state.latestVerification = { at: now(), specHash: state.specHash, iteration: state.iteration, fingerprint: worktreeFingerprint(root), result };
+  save(root, slug, state);
+  return true;
+}
+
+function escapeCell(value: unknown): string { return String(value ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, "<br>"); }
+
 function writeReport(root: string, slug: string, state: RunState, status: EvalStatus, summary: string, timestamp: string): void {
-  const content = `# Telos Eval Report\n\n- Slug: ${slug}\n- Iteration: ${state.iteration}\n- Status: ${status}\n- Summary: ${summary}\n- SPEC hash: ${state.specHash}\n- Timestamp: ${timestamp}\n`;
+  const snapshot = state.latestVerification!;
+  const history = state.history.map((event) => `| ${escapeCell(event.iteration)} | ${escapeCell(event.status)} | ${escapeCell(event.at)} | ${escapeCell(event.summary ?? event.capabilities ?? "")} |`).join("\n");
+  const list = (values: string[]) => values.length ? values.map((value) => `- \`${value.replace(/`/g, "\\`")}\``).join("\n") : "- None";
+  const content = `# Telos Eval Report
+
+- Slug: ${slug}
+- Run ID: ${state.runId ?? `${slug}-${state.startedAt}`}
+- Iteration: ${state.iteration}
+- Status: ${status}
+- Summary: ${summary}
+- SPEC hash: ${state.specHash}
+- Worktree fingerprint: ${snapshot.fingerprint}
+- Verification: ${snapshot.result.status}
+- Timestamp: ${timestamp}
+${snapshot.result.status === "failed" ? `
+## Verification error
+
+${snapshot.result.error}
+` : ""}
+
+## Changed paths
+
+${list(snapshot.result.changedPaths)}
+
+## Modules
+
+${list(snapshot.result.modules)}
+
+## Commands
+
+${list(snapshot.result.commands)}
+
+## Risks
+
+${list(snapshot.result.risks)}
+
+## History
+
+| Iteration | Status | Timestamp | Detail |
+| --- | --- | --- | --- |
+${history}
+`;
   const path = reportPathFor(root, slug, state.iteration);
   mkdirSync(join(root, ".telos", "evals", slug), { recursive: true });
-  writeFileSync(path, content);
+  if (existsSync(path)) throw new RunStateError(`Eval report already exists: .telos/evals/${slug}/${state.iteration}.md`);
+  const temporary = `${path}.tmp`;
+  writeFileSync(temporary, content); renameSync(temporary, path);
 }
+
+function validateRejectedSummary(summary: string): void {
+  const lines = summary.split(/\r?\n/).filter((line) => line.trim());
+  const field = "[^|\\s](?:[^|]*[^|\\s])?";
+  const pattern = new RegExp(`^AC\\d+ \\| ${field} \\| ${field} \\| Stage1: (yes|no)$`);
+  if (!lines.length || lines.some((line) => !pattern.test(line))) {
+    throw new RunStateError("rejected summary must use: <AC> | <missing evidence or behavior> | <how verified> | Stage1: yes|no");
+  }
+}
+
 export function recordResult(root: string, slug: string, status: EvalStatus, summary: string): RunState {
   if (!["approved", "rejected", "uncertain", "blocked"].includes(status)) throw new RunStateError("invalid Eval status");
+  if (status === "rejected") validateRejectedSummary(summary);
   const state = loadRunState(root, slug);
   if (!state || state.status !== "running") throw new RunStateError("no active Telos run for this spec");
   ensureMatchingSpec(root, slug, state);
+  const snapshot = state.latestVerification;
+  if (!snapshot || snapshot.specHash !== state.specHash || snapshot.iteration !== state.iteration) throw new RunStateError("a verification snapshot for the current iteration is required");
+  if (snapshot.fingerprint !== worktreeFingerprint(root)) throw new RunStateError("worktree changed after verification; run `telos verify --changed` again");
+  if (existsSync(reportPathFor(root, slug, state.iteration))) throw new RunStateError(`Eval report already exists: .telos/evals/${slug}/${state.iteration}.md`);
   const timestamp = now();
   state.history.push({ iteration: state.iteration, status, summary, at: timestamp });
   state.status = status === "approved" ? "complete" : status;
@@ -66,21 +178,25 @@ export function recordResult(root: string, slug: string, status: EvalStatus, sum
   writeReport(root, slug, state, status, summary, timestamp);
   return state;
 }
+
 export function retryRun(root: string, slug: string, capabilities: string[]): RunState {
   const state = loadRunState(root, slug);
   if (!state || !["rejected", "uncertain"].includes(state.status)) throw new RunStateError("retry requires a rejected or uncertain Telos run");
   ensureMatchingSpec(root, slug, state);
   if (state.iteration >= state.maxIterations) throw new RunStateError("iteration limit reached; ask the user for direction");
   const timestamp = now();
-  state.iteration += 1; state.status = "running"; state.history.push({ iteration: state.iteration, capabilities, status: "started", at: timestamp });
+  state.iteration += 1; state.status = "running"; delete state.latestVerification;
+  state.history.push({ iteration: state.iteration, capabilities, status: "started", at: timestamp });
   return save(root, slug, state);
 }
+
 export function unblockRun(root: string, slug: string, summary: string): RunState {
   const state = loadRunState(root, slug);
   if (!state || state.status !== "blocked") throw new RunStateError("unblock requires a blocked Telos run");
   ensureMatchingSpec(root, slug, state);
+  if (state.iteration >= state.maxIterations) throw new RunStateError("iteration limit reached; start a new run with user direction");
   const timestamp = now();
-  state.status = "running";
+  state.iteration += 1; state.status = "running"; delete state.latestVerification;
   state.history.push({ iteration: state.iteration, status: "unblocked", summary, at: timestamp });
   return save(root, slug, state);
 }

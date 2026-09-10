@@ -8,7 +8,7 @@
     {
       "name": "telos",
       "source": "./plugins/telos",
-      "description": "Spec-driven workflow with spec, run, and evaluation skills",
+      "description": "Spec-driven workflow with spec, run, evaluation, and history review skills",
       "version": "2.0.0"
     }
   ]

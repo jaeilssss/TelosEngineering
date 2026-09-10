@@ -9,23 +9,25 @@ Use the selected frozen Feature SPEC at `.telos/specs/<slug>/SPEC.md` as the goa
 
 ## Preflight
 
-1. Run `telos update-status codex --project-root .` when the `telos` CLI is available. Show an update recommendation before continuing when one is returned.
+1. Run `telos update-status codex --project-root .` in Codex or `telos update-status claude --project-root .` in Claude Code when the CLI is available. Show an update recommendation before continuing when one is returned.
 2. Obtain the explicit Feature SPEC slug, then read `.telos/specs/<slug>/SPEC.md`. Stop and direct the user to `$spec` if it is missing, draft, or has unresolved questions.
 3. Inspect the relevant repository paths and the current worktree state before implementation.
 4. Read the Spec baseline, Expected Change Surface, Verification Plan, and acceptance criteria. If meaningful baseline drift exists, ask the user to reconfirm the spec before changing code.
-5. Start the auditable loop with `telos run start --spec <slug> --project-root .` before implementation.
+5. Ensure `.telos/project.yml` exists. If it is missing, run `telos init --project-root .`, show the complete generated configuration and inferred command (or `verify: []`) to the user, then continue. `verify: []` permits implementation but requires explicit manual evidence before approval.
+6. Start the auditable loop with `telos run start --spec <slug> --project-root .` before implementation.
 
 ## Execution Loop
 
 Maintain a compact iteration record containing changes, verification evidence, failures, and the next action.
 
 1. Implement only what the acceptance criteria require, and map meaningful changes to those criteria.
-2. Run `telos verify --changed --project-root .` and required risk checks. Do not run destructive, networked, or unclear commands without user confirmation.
-3. Invoke `$eval` (or perform its same evidence-based gate when invoked as part of this run) against the frozen Spec.
-4. Record the final Eval result with `telos run record --spec <slug> --project-root . --status approved|rejected|uncertain|blocked --summary "..."`.
-5. If final Eval is approved, report completion with acceptance-criteria evidence.
-6. If final Eval is rejected or uncertain, analyze the failed evidence, then run `telos run retry --spec <slug> --project-root . --capability <id>` for the next iteration. Fix, test, and evaluate again. A blocked run resumes only after explicit user direction through `telos run unblock --spec <slug> --project-root . --summary "..."`.
-7. Stop and ask for direction when the Spec conflicts with the repository, scope must expand, the CLI iteration limit is reached, or continued looping would not create new evidence.
+2. Invoke `$eval` (or perform its same evidence-based gate when invoked as part of this run) against the frozen Spec. Eval owns `telos verify --changed`; do not run mechanical verification separately in the same iteration.
+3. Record the final Eval result with `telos run record --spec <slug> --project-root . --status approved|rejected|uncertain|blocked --summary "..."`. For `rejected`, every summary line must use `<AC> | <missing evidence or behavior> | <how verified> | Stage1: yes|no`.
+4. If final Eval is approved, report completion with acceptance-criteria evidence.
+5. If final Eval is rejected, analyze the failed evidence, then run `telos run retry --spec <slug> --project-root . --capability <id>` for the next iteration. Fix, test, and evaluate again.
+6. If final Eval is uncertain, stop for user direction. Explain the choices: explicitly retry or request consensus, or revise the SPEC and start a new run. Never retry `uncertain` automatically.
+7. A blocked run resumes only after explicit user direction through `telos run unblock --spec <slug> --project-root . --summary "..."`.
+8. Stop and ask for direction when the Spec conflicts with the repository, scope must expand, the CLI iteration limit is reached, or continued looping would not create new evidence.
 
 ## Rules
 

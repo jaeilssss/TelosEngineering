@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Telos V2 — 지금 무엇이 바뀌었나</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #60708a;
+      --line: #dbe3ef;
+      --paper: #ffffff;
+      --wash: #f4f7fb;
+      --navy: #173b67;
+      --blue: #2774d8;
+      --blue-soft: #eaf3ff;
+      --green: #147d64;
+      --green-soft: #e8f7f1;
+      --amber: #9a6100;
+      --amber-soft: #fff5dc;
+      --red: #a13b45;
+      --red-soft: #fff0f1;
+      --shadow: 0 18px 50px rgba(31, 54, 84, .10);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 0%, #dcecff 0, transparent 32rem),
+        radial-gradient(circle at 92% 12%, #e2f7ee 0, transparent 28rem),
+        var(--wash);
+      font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+      line-height: 1.65;
+      word-break: keep-all;
+    }
+
+    a { color: inherit; }
+    .page { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 80px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 56px;
+      border-radius: 30px;
+      color: white;
+      background: linear-gradient(135deg, #102d50 0%, #195994 62%, #16836e 140%);
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      right: -110px;
+      top: -130px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      box-shadow: 0 0 0 54px rgba(255,255,255,.035), 0 0 0 108px rgba(255,255,255,.025);
+    }
+    .eyebrow { margin: 0 0 10px; font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .78; }
+    h1 { max-width: 780px; margin: 0; font-size: clamp(36px, 6vw, 66px); line-height: 1.08; letter-spacing: -.045em; }
+    .lead { max-width: 760px; margin: 24px 0 0; font-size: clamp(17px, 2vw, 21px); color: #e8f2ff; }
+    .verdict {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: fit-content;
+      margin-top: 30px;
+      padding: 11px 16px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      backdrop-filter: blur(8px);
+      font-weight: 750;
+    }
+    .verdict-dot { width: 10px; height: 10px; border-radius: 50%; background: #ffcf66; box-shadow: 0 0 0 5px rgba(255,207,102,.16); }
+
+    .quick-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 40px; }
+    .quick-nav a { padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.78); color: var(--navy); font-size: 13px; font-weight: 700; text-decoration: none; }
+    section { margin-top: 42px; }
+    h2 { margin: 0 0 10px; color: var(--navy); font-size: clamp(25px, 3.5vw, 36px); line-height: 1.2; letter-spacing: -.025em; }
+    .section-intro { max-width: 790px; margin: 0 0 24px; color: var(--muted); font-size: 16px; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,255,255,.92); box-shadow: 0 12px 35px rgba(31,54,84,.06); }
+    .pad { padding: 26px; }
+
+    .one-line { display: grid; grid-template-columns: 150px 1fr; gap: 22px; align-items: center; }
+    .one-line strong { color: var(--blue); font-size: 18px; }
+    .one-line p { margin: 0; font-size: 19px; font-weight: 700; }
+
+    .flow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 26px 14px; align-items: stretch; padding: 28px; }
+    .flow-step { position: relative; min-height: 142px; padding: 19px 15px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); }
+    .flow-step:not(:last-child)::after { content: "→"; position: absolute; right: -20px; top: 48px; z-index: 2; color: #86a0bd; font-size: 22px; font-weight: 900; }
+    .flow-step .num { display: inline-grid; width: 27px; height: 27px; margin-bottom: 14px; place-items: center; border-radius: 8px; background: var(--blue-soft); color: var(--blue); font-size: 12px; font-weight: 900; }
+    .flow-step h3 { margin: 0 0 6px; font-size: 16px; line-height: 1.25; }
+    .flow-step p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .flow-step.gate { border-color: #9fd9c9; background: var(--green-soft); }
+    .flow-step.final { border-color: #9ebee7; background: var(--blue-soft); }
+
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .layer { position: relative; padding: 28px; overflow: hidden; }
+    .layer::before { content: ""; position: absolute; width: 8px; inset: 0 auto 0 0; background: var(--blue); }
+    .layer.knowledge::before { background: var(--green); }
+    .layer h3 { margin: 0 0 6px; font-size: 21px; }
+    .layer p { margin: 0 0 16px; color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { padding: 7px 10px; border-radius: 9px; background: var(--blue-soft); color: #235a96; font-size: 13px; font-weight: 750; }
+    .knowledge .chip { background: var(--green-soft); color: #176d5b; }
+
+    .skills { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .skill { padding: 25px; }
+    .skill-icon { display: grid; width: 48px; height: 48px; margin-bottom: 18px; place-items: center; border-radius: 15px; color: white; background: var(--blue); font-size: 22px; font-weight: 900; }
+    .skill:nth-child(2) .skill-icon { background: var(--green); }
+    .skill:nth-child(3) .skill-icon { background: #7652b8; }
+    .skill:nth-child(4) .skill-icon { background: #a05a18; }
+    .skill h3 { margin: 0 0 8px; font-size: 23px; }
+    .skill .role { min-height: 52px; margin: 0 0 18px; color: var(--muted); }
+    .skill ol { margin: 0; padding-left: 20px; }
+    .skill li + li { margin-top: 7px; }
+    .not-skill { margin-top: 16px; padding: 17px 20px; border: 1px dashed #a9b8ca; border-radius: 16px; color: var(--muted); background: #fbfcfe; }
+    .not-skill strong { color: var(--ink); }
+
+    .tree { margin: 0; padding: 25px; overflow-x: auto; color: #d9eaff; background: #122339; border-radius: var(--radius); font: 14px/1.75 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; }
+    .tree .commit { color: #76dfba; }
+    .tree .local { color: #ffcf78; }
+
+    .scenario { display: grid; grid-template-columns: 42px 1fr; gap: 0 15px; }
+    .scenario > div { padding-bottom: 24px; }
+    .scenario .rail { position: relative; display: flex; justify-content: center; }
+    .scenario .rail::after { content: ""; position: absolute; top: 34px; bottom: 0; width: 2px; background: var(--line); }
+    .scenario .rail.last::after { display: none; }
+    .scenario .bubble { position: relative; z-index: 1; display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; color: white; background: var(--blue); font-size: 12px; font-weight: 900; }
+    .scenario h3 { margin: 2px 0 4px; font-size: 17px; }
+    .scenario p { margin: 0; color: var(--muted); }
+    code { padding: .12em .36em; border-radius: 6px; color: #174f8a; background: #edf4fb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+
+    .change-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: stretch; }
+    .change-col { padding: 24px; }
+    .change-col.old { background: #fafbfc; }
+    .change-col.new { border-color: #b1dccc; background: #f5fcf9; }
+    .change-col h3 { margin: 0 0 13px; }
+    .change-col ul { margin: 0; padding-left: 20px; }
+    .change-col li + li { margin-top: 8px; }
+    .big-arrow { align-self: center; color: var(--green); font-size: 32px; font-weight: 900; }
+
+    .review-summary { display: grid; grid-template-columns: .9fr 1.1fr; gap: 18px; }
+    .score { display: grid; min-height: 100%; padding: 30px; align-content: center; color: white; background: linear-gradient(145deg, #164a78, #176f62); }
+    .score .label { font-size: 13px; font-weight: 800; letter-spacing: .1em; opacity: .76; }
+    .score .value { margin: 6px 0; font-size: 47px; font-weight: 900; line-height: 1; }
+    .score p { margin: 10px 0 0; color: #dff4ed; }
+    .checks { display: grid; gap: 10px; padding: 22px; }
+    .check { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; padding: 12px 14px; border-radius: 13px; background: var(--green-soft); }
+    .check b { color: var(--green); }
+    .check p { margin: 0; }
+
+    .issues { display: grid; gap: 12px; }
+    .issue { display: grid; grid-template-columns: 96px 1fr; gap: 18px; padding: 21px; border: 1px solid #eed9aa; border-radius: 18px; background: var(--amber-soft); }
+    .issue.high { border-color: #efb9bf; background: var(--red-soft); }
+    .severity { align-self: start; padding: 5px 9px; border-radius: 999px; color: var(--amber); background: rgba(255,255,255,.72); font-size: 12px; font-weight: 900; text-align: center; }
+    .high .severity { color: var(--red); }
+    .issue h3 { margin: 0 0 5px; font-size: 17px; }
+    .issue p { margin: 0; color: #6d5b3d; }
+    .issue.high p { color: #765056; }
+
+    .commands { overflow-x: auto; padding: 22px 24px; background: #13263d; color: #dcecff; font: 13px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre; }
+    .answer { padding: 30px; border: 2px solid #a8d3c4; background: linear-gradient(135deg, #f8fffc, #f1f7ff); }
+    .answer h2 { color: #166654; }
+    .answer p { margin: 10px 0 0; font-size: 18px; }
+    footer { margin-top: 35px; color: var(--muted); font-size: 13px; text-align: center; }
+
+    @media (max-width: 900px) {
+      .flow { grid-template-columns: repeat(2, 1fr); }
+      .flow-step:not(:last-child)::after { display: none; }
+      .skills { grid-template-columns: 1fr; }
+      .review-summary { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .page { width: min(100% - 20px, 1120px); padding-top: 10px; }
+      .hero { padding: 34px 25px; border-radius: 22px; }
+      .one-line, .split, .change-grid { grid-template-columns: 1fr; }
+      .big-arrow { transform: rotate(90deg); justify-self: center; }
+      .flow { grid-template-columns: 1fr; }
+      .issue { grid-template-columns: 1fr; gap: 9px; }
+      .severity { width: fit-content; }
+    }
+    @media print {
+      body { background: white; }
+      .page { width: 100%; padding: 0; }
+      .hero, .card { box-shadow: none; break-inside: avoid; }
+      .quick-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">Telos V2 · 이해를 위한 한 장 정리</p>
+      <h1>Telos는 코드를 만드는 도구보다<br>“끝났는지 판정하는 진행 관리자”에 가깝다</h1>
+      <p class="lead">프로젝트마다 다른 테스트 방법은 설정 파일에 맡기고, Telos 엔진은 SPEC 확정 → 실행 → 검증 → 판정 → 재시도 흐름만 관리한다.</p>
+      <div class="verdict"><span class="verdict-dot"></span>현재 판단: 방향과 구현 모두 맞음 · 최종 Eval 진행 중</div>
+    </header>
+
+    <nav class="quick-nav" aria-label="문서 바로가기">
+      <a href="#identity">정체성</a><a href="#flow">전체 흐름</a><a href="#skills">스킬</a><a href="#files">파일 구조</a><a href="#changes">무엇이 바뀌었나</a><a href="#review">잘 수정했나</a><a href="#answer">최종 답</a>
+    </nav>
+
+    <section id="identity">
+      <h2>먼저, 한 문장으로 이해하기</h2>
+      <div class="card pad one-line">
+        <strong>Telos의 역할</strong>
+        <p>“무엇을 만들지 계약하고, 정해진 검증을 거쳐, 근거가 있을 때만 완료라고 말하게 한다.”</p>
+      </div>
+    </section>
+
+    <section id="flow">
+      <h2>전체 동작 흐름</h2>
+      <p class="section-intro">사용자는 목표를 말합니다. Telos는 목표를 SPEC으로 고정하고, 구현이 끝난 뒤 프로젝트가 정한 검증과 독립적인 Eval을 통과해야 완료로 기록합니다.</p>
+      <div class="card flow" role="img" aria-label="사용자 목표에서 최종 판정까지의 Telos 처리 흐름">
+        <article class="flow-step"><span class="num">1</span><h3>사용자 목표</h3><p>무엇을 왜 바꿀지 말한다.</p></article>
+        <article class="flow-step"><span class="num">2</span><h3>$spec</h3><p>모호한 부분을 질문하고 계약으로 만든다.</p></article>
+        <article class="flow-step"><span class="num">3</span><h3>Feature SPEC</h3><p>완료 기준과 범위를 frozen 상태로 고정한다.</p></article>
+        <article class="flow-step"><span class="num">4</span><h3>$run</h3><p>구현과 iteration 상태를 관리한다.</p></article>
+        <article class="flow-step gate"><span class="num">5</span><h3>verify</h3><p>project.yml에 기록된 명령을 실행한다.</p></article>
+        <article class="flow-step"><span class="num">6</span><h3>$eval</h3><p>AC와 실제 근거를 비교한다.</p></article>
+        <article class="flow-step final"><span class="num">7</span><h3>판정</h3><p>approved / rejected / uncertain / blocked로 기록한다.</p></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>엔진과 프로젝트 지식은 이렇게 나뉜다</h2>
+      <p class="section-intro">이번 개편의 핵심입니다. Telos가 특정 언어나 빌드 도구를 추측하지 않게 만들었습니다.</p>
+      <div class="split">
+        <article class="card layer">
+          <h3>엔진 — 모든 프로젝트에서 동일</h3>
+          <p>Telos 코드와 스킬이 책임지는 흐름입니다.</p>
+          <div class="chips"><span class="chip">SPEC 고정</span><span class="chip">iteration</span><span class="chip">종료 조건</span><span class="chip">SPEC hash</span><span class="chip">unblock</span><span class="chip">Eval 리포트</span></div>
+        </article>
+        <article class="card layer knowledge">
+          <h3>지식 — 프로젝트마다 다름</h3>
+          <p><code>.telos/project.yml</code>에 저장합니다.</p>
+          <div class="chips"><span class="chip">modules[].paths</span><span class="chip">modules[].verify</span><span class="chip">risks[]</span><span class="chip">scopes[]</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="skills">
+      <h2>현재 스킬은 4개</h2>
+      <p class="section-intro">예전의 <code>impl</code> 별칭과 quick 모드는 제거했습니다. 네 스킬의 역할이 겹치지 않도록 나눴습니다.</p>
+      <div class="skills">
+        <article class="card skill">
+          <div class="skill-icon">S</div>
+          <h3>$spec</h3>
+          <p class="role">“정확히 무엇을 완료해야 하나?”를 정하는 인터뷰 담당입니다.</p>
+          <ol><li>핵심 용어와 범위를 질문</li><li>테스트 전략과 AC 작성</li><li>모호성 검사</li><li>Feature SPEC을 frozen으로 확정</li></ol>
+        </article>
+        <article class="card skill">
+          <div class="skill-icon">R</div>
+          <h3>$run</h3>
+          <p class="role">실제 작업을 진행하고 반복 횟수와 상태를 관리합니다.</p>
+          <ol><li>명시한 slug로 run 시작</li><li>하네스가 구현 능력 선택</li><li>Eval 결과 기록</li><li>rejected만 자동 retry</li></ol>
+        </article>
+        <article class="card skill">
+          <div class="skill-icon">E</div>
+          <h3>$eval</h3>
+          <p class="role">구현 의도가 아니라 증거를 보고 완료 여부를 판단합니다.</p>
+          <ol><li>기계 검증 먼저 실행</li><li>AC별 반례 확인</li><li>approved/rejected/uncertain 판정</li><li>Markdown 리포트 기록</li></ol>
+        </article>
+        <article class="card skill">
+          <div class="skill-icon">V</div>
+          <h3>$review</h3>
+          <p class="role">반복된 거절 이력을 읽고 다음 사고를 막을 방법만 제안합니다.</p>
+          <ol><li>기간별 history 조회</li><li>비슷한 실패 근거 묶기</li><li>테스트·lint·risk 순서로 제안</li><li>파일은 직접 수정하지 않음</li></ol>
+        </article>
+      </div>
+      <div class="not-skill"><strong>중요:</strong> Telos가 설치된 스킬을 검색해 점수로 고르는 기능은 삭제됐습니다. 지금의 Telos는 “도구 추천기”가 아니라 “계약과 완료 판정 루프 관리자”입니다.</div>
+    </section>
+
+    <section id="files">
+      <h2>파일은 어디에 저장되나</h2>
+      <pre class="tree"><span class="commit">.telos/                              # 팀과 공유</span>
+├── <span class="commit">project.yml                       # 모듈·검증·위험·스코프</span>
+├── <span class="local">active                            # 현재 선택한 SPEC slug, gitignore</span>
+├── <span class="commit">specs/</span>
+│   ├── <span class="commit">payment-flow/SPEC.md            # 기능 계약</span>
+│   └── <span class="commit">search-v2/SPEC.md</span>
+├── <span class="local">runs/payment-flow.json             # 로컬 상태, gitignore</span>
+└── <span class="local">evals/payment-flow/1.md            # 로컬 판정 기록, gitignore</span></pre>
+    </section>
+
+    <section>
+      <h2>실제로 한 번 돌리면</h2>
+      <div class="card pad scenario">
+        <div class="rail"><span class="bubble">1</span></div><div><h3>SPEC을 만든다</h3><p><code>$spec 결제 재시도 개선</code> → <code>.telos/specs/payment-retry/SPEC.md</code></p></div>
+        <div class="rail"><span class="bubble">2</span></div><div><h3>run을 시작한다</h3><p><code>telos run start --spec payment-retry</code> → 상태 파일과 <code>.telos/active</code> 생성</p></div>
+        <div class="rail"><span class="bubble">3</span></div><div><h3>코드를 고친다</h3><p>훅은 파일 확장자가 아니라 <code>project.yml</code>의 paths를 보고 해당 변경인지 판단합니다.</p></div>
+        <div class="rail"><span class="bubble">4</span></div><div><h3>Eval이 정해진 검증을 한 번 실행한다</h3><p><code>telos verify --changed</code>가 변경 모듈의 verify와 matching risk를 순서대로 실행하고 작업 트리 지문을 저장합니다.</p></div>
+        <div class="rail"><span class="bubble">5</span></div><div><h3>Eval한다</h3><p>scope가 붙은 AC는 scope별 Evidence가 없으면 승인할 수 없습니다.</p></div>
+        <div class="rail last"><span class="bubble">6</span></div><div><h3>결과를 남긴다</h3><p>통과는 complete, 실패는 retry, 사용자 판단이 필요하면 blocked 후 명시적으로 unblock합니다.</p></div>
+      </div>
+    </section>
+
+    <section id="changes">
+      <h2>예전과 지금의 차이</h2>
+      <div class="change-grid">
+        <article class="card change-col old"><h3>예전</h3><ul><li>루트 <code>SPEC.md</code> 하나</li><li>확장자 목록으로 코드 판별</li><li>모델이 테스트 명령을 추측</li><li>Capability를 검색하고 키워드 점수화</li><li>Codex·Claude 지침을 복붙 관리</li><li>blocked 상태를 풀 방법 없음</li></ul></article>
+        <div class="big-arrow" aria-hidden="true">→</div>
+        <article class="card change-col new"><h3>지금</h3><ul><li>slug별 여러 Feature SPEC</li><li><code>modules[].paths</code>로 대상 판별</li><li><code>modules[].verify</code>로 명령 고정</li><li>자동 Capability 라우팅 제거</li><li>공통 skill 소스에서 두 번들 빌드</li><li>hash 감지·unblock·Eval 리포트 추가</li></ul></article>
+      </div>
+    </section>
+
+    <section id="review">
+      <h2>그래서, 잘 수정한 게 맞나?</h2>
+      <p class="section-intro">결론부터 말하면 구조적 방향이 맞고, 이전 점검에서 발견한 핵심 빈틈도 이번 hardening 작업에서 보완했습니다.</p>
+      <div class="review-summary">
+        <article class="card score"><span class="label">현재 코드 판단</span><span class="value">방향 ✓</span><p>엔진/지식 분리와 완료 판정 루프라는 목표는 코드에 실제로 반영됐습니다.</p></article>
+        <div class="card checks">
+          <div class="check"><b>✓</b><p>34개 자동 테스트 통과</p></div>
+          <div class="check"><b>✓</b><p>릴리스 버전 검사 통과</p></div>
+          <div class="check"><b>✓</b><p>npm 패키지 구성 검사 통과</p></div>
+          <div class="check"><b>✓</b><p>프런트엔드/JVM 형태의 서로 다른 경로 설정 테스트</p></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:32px">이전에 발견한 빈틈은 이렇게 막았다</h2>
+      <div class="issues">
+        <article class="issue"><span class="severity">수정 완료</span><div><h3>untracked 파일도 변경 경로에 포함</h3><p>tracked diff와 Git의 untracked·non-ignored 목록을 합쳐 새 파일만 있는 작업도 모듈 검증에서 빠지지 않습니다.</p></div></article>
+        <article class="issue"><span class="severity">수정 완료</span><div><h3>리포트와 Run 이력 보존</h3><p>unblock은 iteration을 올리고, 같은 slug의 새 Run은 이전 상태와 Eval 폴더를 같은 archive ID로 이동합니다.</p></div></article>
+        <article class="issue"><span class="severity">수정 완료</span><div><h3>검증 뒤 코드 변경 감지</h3><p>SPEC hash, iteration, worktree fingerprint가 모두 같아야 Eval 결과를 기록할 수 있습니다. Stage 1 실패도 스냅샷으로 보존됩니다.</p></div></article>
+        <article class="issue"><span class="severity">수정 완료</span><div><h3>로컬 active와 안전한 설치 제거</h3><p><code>.telos/active</code>는 Git에서 무시합니다. Codex 플러그인은 <code>~/.telos/plugins/telos</code>에 설치되고 Telos 소유 파일만 제거합니다.</p></div></article>
+      </div>
+    </section>
+
+    <section>
+      <h2>자주 쓰게 될 CLI</h2>
+      <pre class="card commands"># 변경 모듈의 정해진 검증 실행
+telos verify --changed --project-root .
+
+# 설정 생성과 진단
+telos init --project-root .
+telos doctor --project-root .
+
+# 기능별 실행 시작
+telos run start --spec payment-retry --project-root .
+
+# Eval 결과 기록
+telos run record --spec payment-retry --status approved --summary "AC 통과"
+
+# rejected 다음 iteration
+telos run retry --spec payment-retry
+
+# 사용자 판단으로 blocked 해제
+telos run unblock --spec payment-retry --summary "진행 승인"
+
+# 기간별 이력 조회
+telos history --since 7d --project-root .</pre>
+    </section>
+
+    <section id="answer" class="card answer">
+      <h2>당신이 이해한 방향은 맞습니다</h2>
+      <p>Telos를 더 많은 기능을 가진 만능 에이전트로 만드는 개편이 아닙니다. 반대로 프로젝트별 추측을 걷어내고, <strong>정해진 계약과 검증 근거 없이는 완료라고 말하지 못하게 만드는 범용 엔진</strong>으로 좁힌 작업입니다.</p>
+      <p>현재 구현은 그 방향으로 제대로 이동했고, 이전에 확인한 우선 수정 항목도 코드와 테스트로 보완했습니다. 남은 단계는 최종 Eval과 PR 검토입니다.</p>
+    </section>
+
+    <footer>기준: commit 7803fa6 이후 hardening 작업 · branch feat/engine-knowledge-separation · 2026-09-10</footer>
+  </main>
+</body>
+</html>
