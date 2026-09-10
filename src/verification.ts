@@ -79,7 +79,8 @@ function tail(stdout: string | null | undefined, stderr: string | null | undefin
 }
 
 export function runConfiguredCommand(command: string, root: string, timeout = 600_000) {
-  const result = spawnSync(command, { cwd: root, shell: true, encoding: "utf8", timeout });
+  const shell = process.platform === "win32" ? "powershell.exe" : true;
+  const result = spawnSync(command, { cwd: root, shell, encoding: "utf8", timeout });
   const detail = tail(result.stdout, result.stderr);
   if (result.error) {
     const timedOut = (result.error as NodeJS.ErrnoException).code === "ETIMEDOUT" || result.signal === "SIGTERM";
