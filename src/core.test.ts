@@ -447,7 +447,7 @@ test("requires evidence for every declared scope", () => {
 
 test("supports an isolated install, reinstall, and uninstall round trip", () => {
   const root = mkdtempSync(join(tmpdir(), "telos-install-")); const home = join(root, "home");
-  const legacy = join(home, "plugins", "telos", ".codex-plugin"); mkdirSync(legacy, { recursive: true }); writeFileSync(join(legacy, "plugin.json"), JSON.stringify({ name: "telos" }));
+  const legacy = join(home, ".telos", "plugins", "telos", ".codex-plugin"); mkdirSync(legacy, { recursive: true }); writeFileSync(join(legacy, "plugin.json"), JSON.stringify({ name: "telos" }));
   const marketplace = join(home, ".telos", "claude-marketplace"); mkdirSync(join(marketplace, "plugins", "other"), { recursive: true }); writeFileSync(join(marketplace, "plugins", "other", "keep.txt"), "keep");
   mkdirSync(join(marketplace, ".claude-plugin"), { recursive: true }); writeFileSync(join(marketplace, ".claude-plugin", "marketplace.json"), JSON.stringify({ name: "personal", plugins: [{ name: "other", version: "1.0.0" }] }));
   install("all", home); install("all", home);
@@ -457,14 +457,14 @@ test("supports an isolated install, reinstall, and uninstall round trip", () => 
   assert.equal(existsSync(join(marketplace, "plugins", "telos", "agents")), false);
   for (const skill of ["spec", "run", "eval", "review"]) assert.equal(
     readFileSync(join(marketplace, "plugins", "telos", "skills", skill, "SKILL.md"), "utf8"),
-    readFileSync(join(home, ".telos", "plugins", "telos", "skills", skill, "SKILL.md"), "utf8")
+    readFileSync(join(home, "plugins", "telos", "skills", skill, "SKILL.md"), "utf8")
   );
   assert.match(readFileSync(join(marketplace, "plugins", "telos", "hooks", "hooks.json"), "utf8"), /"command": "node"/);
-  const codexPlugin = join(home, ".telos", "plugins", "telos");
-  assert.equal(existsSync(join(home, "plugins", "telos")), false);
+  const codexPlugin = join(home, "plugins", "telos");
+  assert.equal(existsSync(join(home, ".telos", "plugins", "telos")), false);
   assert.match(readFileSync(join(codexPlugin, "hooks", "hooks.json"), "utf8"), /"command": "node/);
   const codexCatalog = join(home, ".agents", "plugins", "marketplace.json");
-  assert.match(readFileSync(codexCatalog, "utf8"), /\.\.\/\.\.\/\.telos\/plugins\/telos/);
+  assert.match(readFileSync(codexCatalog, "utf8"), /\.\/plugins\/telos/);
   const project = join(root, "project"); mkdirSync(join(project, "src"), { recursive: true });
   const installedHook = execFileSync(process.execPath, [join(codexPlugin, "scripts", "spec_gate.mjs")], { input: JSON.stringify({ cwd: project, tool_input: { file_path: "src/app.ts" } }), encoding: "utf8" });
   assert.match(installedHook, /project.yml is missing/);
