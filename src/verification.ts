@@ -78,9 +78,43 @@ function tail(stdout: string | null | undefined, stderr: string | null | undefin
   return `${stdout ?? ""}\n${stderr ?? ""}`.split(/\r?\n/).filter(Boolean).slice(-40).join("\n");
 }
 
+function splitCommand(command: string): string[] {
+  const args: string[] = [];
+  let current = "";
+  let quote: "'" | '"' | null = null;
+  let escaped = false;
+  const push = () => { if (current) args.push(current); current = ""; };
+  const input = command.trim();
+  for (let index = 0; index < input.length; index += 1) {
+    const character = input[index];
+    if (escaped) { current += character; escaped = false; continue; }
+    if (character === "\\" && quote === '"' && ["\\", '"'].includes(input[index + 1] ?? "")) { escaped = true; continue; }
+    if (quote) { if (character === quote) quote = null; else current += character; continue; }
+    if (character === "'" || character === '"') { quote = character; continue; }
+    if (/\s/.test(character)) push(); else current += character;
+  }
+  if (escaped) current += "\\";
+  push();
+  return args;
+}
+
+function windowsExecutable(file: string, root: string): string {
+  if (/\.(?:cmd|bat|exe)$/i.test(file)) return file;
+  for (const suffix of [".cmd", ".bat"]) {
+    if (existsSync(join(root, `${file}${suffix}`))) return `${file}${suffix}`;
+  }
+  if (["npm", "npx", "pnpm", "yarn", "bun"].includes(file)) return `${file}.cmd`;
+  return file;
+}
+
 export function runConfiguredCommand(command: string, root: string, timeout = 600_000) {
-  const shell = process.platform === "win32" ? "powershell.exe" : true;
-  const result = spawnSync(command, { cwd: root, shell, encoding: "utf8", timeout });
+  const result = process.platform === "win32"
+    ? (() => {
+      const [file, ...args] = splitCommand(command);
+      const executable = windowsExecutable(file, root);
+      return spawnSync(executable, args, { cwd: root, ...(executable.endsWith(".cmd") || executable.endsWith(".bat") ? { shell: true } : {}), encoding: "utf8", timeout });
+    })()
+    : spawnSync(command, { cwd: root, shell: true, encoding: "utf8", timeout });
   const detail = tail(result.stdout, result.stderr);
   if (result.error) {
     const timedOut = (result.error as NodeJS.ErrnoException).code === "ETIMEDOUT" || result.signal === "SIGTERM";
