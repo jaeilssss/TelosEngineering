@@ -84,9 +84,11 @@ function splitCommand(command: string): string[] {
   let quote: "'" | '"' | null = null;
   let escaped = false;
   const push = () => { if (current) args.push(current); current = ""; };
-  for (const character of command.trim()) {
+  const input = command.trim();
+  for (let index = 0; index < input.length; index += 1) {
+    const character = input[index];
     if (escaped) { current += character; escaped = false; continue; }
-    if (character === "\\" && quote === '"') { escaped = true; continue; }
+    if (character === "\\" && quote === '"' && ["\\", '"'].includes(input[index + 1] ?? "")) { escaped = true; continue; }
     if (quote) { if (character === quote) quote = null; else current += character; continue; }
     if (character === "'" || character === '"') { quote = character; continue; }
     if (/\s/.test(character)) push(); else current += character;
@@ -107,7 +109,11 @@ function windowsExecutable(file: string, root: string): string {
 
 export function runConfiguredCommand(command: string, root: string, timeout = 600_000) {
   const result = process.platform === "win32"
-    ? (() => { const [file, ...args] = splitCommand(command); return spawnSync(windowsExecutable(file, root), args, { cwd: root, encoding: "utf8", timeout }); })()
+    ? (() => {
+      const [file, ...args] = splitCommand(command);
+      const executable = windowsExecutable(file, root);
+      return spawnSync(executable, args, { cwd: root, ...(executable.endsWith(".cmd") || executable.endsWith(".bat") ? { shell: true } : {}), encoding: "utf8", timeout });
+    })()
     : spawnSync(command, { cwd: root, shell: true, encoding: "utf8", timeout });
   const detail = tail(result.stdout, result.stderr);
   if (result.error) {
