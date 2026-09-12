@@ -15,13 +15,13 @@ const copyTree = (source: string, destination: string) => { const temporary = `$
 const installYamlParser = (plugin: string) => copyTree(dirname(require.resolve("yaml/package.json")), join(plugin, "vendor", "yaml"));
 const executable = (name: string) => spawnSync(name, ["--version"], { stdio: "ignore" }).status === 0;
 const removeLegacyCodex = (home: string) => {
-  const legacy = join(home, "plugins", "telos");
+  const legacy = join(home, ".telos", "plugins", "telos");
   try { if (readJson(join(legacy, ".codex-plugin", "plugin.json")).name === "telos") rmSync(legacy, { recursive: true, force: true }); } catch {}
 };
 
 function installedVersion(destination: string, target: Exclude<Target, "all">) { writeJson(join(destination, ".telos-version.json"), { package: VERSION, target, version: VERSION }); }
 function installCodex(home: string): string[] {
-  const plugin = join(home, ".telos", "plugins", "telos");
+  const plugin = join(home, "plugins", "telos");
   copyTree(join(resourceRoot, "codex", "telos"), plugin);
   installYamlParser(plugin);
   const manifestPath = join(plugin, ".codex-plugin", "plugin.json"); const manifest = readJson(manifestPath); manifest.version = VERSION; writeJson(manifestPath, manifest);
@@ -29,7 +29,7 @@ function installCodex(home: string): string[] {
   removeLegacyCodex(home);
   const catalogPath = join(home, ".agents", "plugins", "marketplace.json"); const catalog = readJson(catalogPath);
   catalog.name ??= "personal"; catalog.interface ??= { displayName: "Personal" }; catalog.plugins ??= [];
-  catalog.plugins = catalog.plugins.filter((entry: any) => entry.name !== "telos"); catalog.plugins.push({ name: "telos", source: { source: "local", path: "../../.telos/plugins/telos" }, policy: { installation: "AVAILABLE", authentication: "ON_INSTALL" }, category: "Productivity" }); writeJson(catalogPath, catalog);
+  catalog.plugins = catalog.plugins.filter((entry: any) => entry.name !== "telos"); catalog.plugins.push({ name: "telos", source: { source: "local", path: "./plugins/telos" }, policy: { installation: "AVAILABLE", authentication: "ON_INSTALL" }, category: "Productivity" }); writeJson(catalogPath, catalog);
   const messages = [`Codex plugin copied to ${plugin}`, `Codex marketplace updated at ${catalogPath}`];
   if (home === homedir() && executable("codex")) { const result = spawnSync("codex", ["plugin", "add", "telos@personal"], { encoding: "utf8" }); messages.push(result.status === 0 ? "Codex plugin installed: telos@personal" : `WARNING: codex plugin add failed: ${(result.stderr || result.stdout || "").trim()}`); } else if (home === homedir()) messages.push("WARNING: Codex CLI not found; run `codex plugin add telos@personal` later.");
   messages.push("Restart Codex completely before using Telos again."); return messages;
@@ -57,7 +57,7 @@ function removeCatalogEntry(path: string): void {
 export function uninstall(target: Target, home = homedir()): string[] {
   const messages: string[] = [];
   if (target === "codex" || target === "all") {
-    const plugin = join(home, ".telos", "plugins", "telos");
+    const plugin = join(home, "plugins", "telos");
     rmSync(plugin, { recursive: true, force: true });
     removeLegacyCodex(home);
     removeCatalogEntry(join(home, ".agents", "plugins", "marketplace.json"));
