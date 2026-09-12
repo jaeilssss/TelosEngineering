@@ -80,7 +80,7 @@ function tail(stdout: string | null | undefined, stderr: string | null | undefin
 
 export function runConfiguredCommand(command: string, root: string, timeout = 600_000) {
   const result = process.platform === "win32"
-    ? spawnSync("powershell.exe", ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", command], { cwd: root, encoding: "utf8", timeout })
+    ? spawnSync("powershell.exe", ["-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(command, "utf16le").toString("base64")], { cwd: root, encoding: "utf8", timeout })
     : spawnSync(command, { cwd: root, shell: true, encoding: "utf8", timeout });
   const detail = tail(result.stdout, result.stderr);
   if (result.error) {
