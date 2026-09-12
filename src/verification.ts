@@ -78,9 +78,36 @@ function tail(stdout: string | null | undefined, stderr: string | null | undefin
   return `${stdout ?? ""}\n${stderr ?? ""}`.split(/\r?\n/).filter(Boolean).slice(-40).join("\n");
 }
 
+function splitCommand(command: string): string[] {
+  const args: string[] = [];
+  let current = "";
+  let quote: "'" | '"' | null = null;
+  let escaped = false;
+  const push = () => { if (current) args.push(current); current = ""; };
+  for (const character of command.trim()) {
+    if (escaped) { current += character; escaped = false; continue; }
+    if (character === "\\" && quote === '"') { escaped = true; continue; }
+    if (quote) { if (character === quote) quote = null; else current += character; continue; }
+    if (character === "'" || character === '"') { quote = character; continue; }
+    if (/\s/.test(character)) push(); else current += character;
+  }
+  if (escaped) current += "\\";
+  push();
+  return args;
+}
+
+function windowsExecutable(file: string, root: string): string {
+  if (/\.(?:cmd|bat|exe)$/i.test(file)) return file;
+  for (const suffix of [".cmd", ".bat"]) {
+    if (existsSync(join(root, `${file}${suffix}`))) return `${file}${suffix}`;
+  }
+  if (["npm", "npx", "pnpm", "yarn", "bun"].includes(file)) return `${file}.cmd`;
+  return file;
+}
+
 export function runConfiguredCommand(command: string, root: string, timeout = 600_000) {
   const result = process.platform === "win32"
-    ? spawnSync("powershell.exe", ["-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(command, "utf16le").toString("base64")], { cwd: root, encoding: "utf8", timeout })
+    ? (() => { const [file, ...args] = splitCommand(command); return spawnSync(windowsExecutable(file, root), args, { cwd: root, encoding: "utf8", timeout }); })()
     : spawnSync(command, { cwd: root, shell: true, encoding: "utf8", timeout });
   const detail = tail(result.stdout, result.stderr);
   if (result.error) {
