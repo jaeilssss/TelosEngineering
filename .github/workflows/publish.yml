@@ -24,4 +24,10 @@ jobs:
       - run: npm ci
       - run: npm run check:release -- "${{ github.event.release.tag_name }}"
       - run: npm test
+      - name: Verify npm authentication
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
