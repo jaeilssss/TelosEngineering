@@ -22,13 +22,21 @@ Treat the text after `$spec` as the initial task input.
    - Use `.telos/project.yml` `risks[]` for project-specific mechanical risks. When it declares scopes, write `[scopes: name-a, name-b]` on a multi-scope AC and add one `- Evidence [name]: ...` line per scope.
    - Expected change surface names allowed files/areas and whether dependency, API, or schema changes are permitted.
    - Verification plan uses `telos verify --changed --project-root .` for configured checks and records only additional manual checks.
-7. If `Test strategy` is `TDD` or `test-after`, include an acceptance criterion that the related tests pass. If the task is a bug fix, also include an acceptance criterion requiring at least one regression test. If `Test strategy` is `none`, do not add those test criteria automatically.
-8. Challenge one important assumption with a contrary case.
-9. Continue until acceptance criteria are measurable and open questions are resolved.
-10. Create `.telos/specs/<slug>/SPEC.md` using `assets/SPEC.template.md`.
-11. If open questions remain, keep asking.
-12. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
-13. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.
+7. Check the size of the spec before freezing. Split it when any of these is true:
+   - more than 6 acceptance criteria
+   - the work spans different screens, layers, or subsystems
+   - one iteration plausibly cannot be implemented within a single agent response
+
+   A Feature SPEC must be small enough that one iteration finishes in one response.
+   When splitting, name each slug for the capability it delivers and record the
+   intended order in the parent discussion, not inside a single oversized SPEC.
+8. If `Test strategy` is `TDD` or `test-after`, include an acceptance criterion that the related tests pass. If the task is a bug fix, also include an acceptance criterion requiring at least one regression test. If `Test strategy` is `none`, do not add those test criteria automatically.
+9. Challenge one important assumption with a contrary case.
+10. Continue until acceptance criteria are measurable and open questions are resolved.
+11. Create `.telos/specs/<slug>/SPEC.md` using `assets/SPEC.template.md`.
+12. If open questions remain, keep asking.
+13. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
+14. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.
 
 ## Subagent Handoff
 

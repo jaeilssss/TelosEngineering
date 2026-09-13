@@ -14,9 +14,43 @@ Use the selected frozen Feature SPEC at `.telos/specs/<slug>/SPEC.md` as the goa
 3. Inspect the relevant repository paths and the current worktree state before implementation.
 4. Read the Spec baseline, Expected Change Surface, Verification Plan, and acceptance criteria. If meaningful baseline drift exists, ask the user to reconfirm the spec before changing code.
 5. Ensure `.telos/project.yml` exists. If it is missing, run `telos init --project-root .`, show the complete generated configuration and inferred command (or `verify: []`) to the user, then continue. `verify: []` permits implementation but requires explicit manual evidence before approval.
-6. Start the auditable loop with `telos run start --spec <slug> --project-root .` before implementation.
+6. Determine whether this is a new run or a resume.
+   Run `telos run status --spec <slug> --project-root .` first.
+
+   - If the status is `running`: do NOT call `telos run start`. It will fail with
+     `already active`. Read the current iteration number and the most recent
+     rejection summary from the run state, then **proceed directly to Execution
+     Loop step 1 and implement in this same response.** Reporting the status is
+     not an acceptable stopping point.
+
+   - If the status is `blocked`: resume only after explicit user direction through
+     `telos run unblock --spec <slug> --project-root . --summary "..."`, then
+     proceed to Execution Loop step 1.
+
+   - If the status is `rejected` or `uncertain`: call
+     `telos run retry --spec <slug> --project-root .` and proceed to Execution
+     Loop step 1.
+
+   - If there is no run state, or the status is `complete`: start a new loop with
+     `telos run start --spec <slug> --project-root .` and proceed to Execution
+     Loop step 1.
 
 ## Execution Loop
+
+### Turn contract
+
+**Progress reporting is not a terminal state.**
+
+Once this skill is invoked, do not end the response until one of these has happened:
+
+  (a) a verdict was written with `telos run record`, or
+  (b) Execution Loop step 8 applies and user direction is genuinely required.
+
+Announcing what remains, restating the run status, or summarizing partial work is
+NOT a stopping point. If the full implementation does not fit in one response,
+implement the subset of acceptance criteria that does fit, then record the
+iteration with `telos run record --status rejected` listing the remaining criteria.
+A partial iteration recorded as `rejected` is normal progress, not a failure.
 
 Maintain a compact iteration record containing changes, verification evidence, failures, and the next action.
 
@@ -33,6 +67,8 @@ Maintain a compact iteration record containing changes, verification evidence, f
 
 - Preserve user changes and stay within Expected Change Surface. Route a scope conflict back to `$spec` rather than guessing.
 - Keep implementation, test, and evaluation evidence distinct. An implementation session does not approve its own result.
+- Never report `running` as completion. It is a stored status value, not a background worker. No code changes while no tool calls are being made.
+- Every iteration must end with a recorded verdict. An iteration that stops without `telos run record` leaves no history, so the next invocation has to rediscover the situation from scratch.
 
 ## Completion
 

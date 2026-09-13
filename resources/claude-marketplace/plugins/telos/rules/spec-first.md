@@ -30,6 +30,14 @@
 Telos는 Spec과 final Eval을 소유한다. 설치된 스킬·플러그인·에이전트는 교체 가능한 Capability이며,
 Telos는 현재 iteration에 필요한 것만 고른다.
 
+## Run loop
+
+- `running` is a stored status, not a background worker. Never report it as completion.
+- Resuming a `running` iteration means implementing, not reporting status.
+- Progress reporting is not a terminal state.
+- A partial iteration must be recorded with `telos run record --status rejected`.
+- One Feature SPEC must be small enough that one iteration finishes in one response.
+
 ## 3단계 평가 게이트 (비용 순서)
 
 - **Stage 1 — Mechanical ($0):** 테스트·린트·타입체크·빌드. 통과 못 하면 여기서 멈춘다.
