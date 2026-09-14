@@ -61,7 +61,7 @@ Maintain a compact iteration record containing changes, verification evidence, f
 5. If final Eval is rejected, analyze the failed evidence, then run `telos run retry --spec <slug> --project-root . --capability <id>` for the next iteration. Fix, test, and evaluate again.
 6. If final Eval is uncertain, stop for user direction. Explain the choices: explicitly retry or request consensus, or revise the SPEC and start a new run. Never retry `uncertain` automatically.
 7. A blocked run resumes only after explicit user direction through `telos run unblock --spec <slug> --project-root . --summary "..."`.
-8. Stop and ask for direction when the Spec conflicts with the repository, scope must expand, the CLI iteration limit is reached, or continued looping would not create new evidence.
+8. Stop and ask for direction when the Spec conflicts with the repository, scope must expand, or continued looping would not create new evidence. If the CLI iteration limit is reached and the user explicitly asks to continue this SPEC, run `telos run extend --spec <slug> --project-root . --by <additional-iterations>` and then resume it with `telos run retry` or `telos run unblock`. This preserves the run history and continues at the next iteration; it changes only that SPEC's limit.
 
 ## Rules
 

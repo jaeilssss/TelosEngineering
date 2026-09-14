@@ -1,6 +1,6 @@
 {
   "name": "telos-kit",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "description": "Spec-driven capability orchestration for Codex and Claude Code",
   "author": "Telos",
   "repository": {
