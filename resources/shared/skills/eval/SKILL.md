@@ -5,7 +5,7 @@ description: "Evaluate implementation against SPEC.md acceptance criteria. Use w
 
 # Spec Evaluation
 
-Evaluate the selected Feature SPEC at `.telos/specs/<slug>/SPEC.md`. Do not implement fixes while evaluating unless the user explicitly asks after the evaluation.
+Run `telos workspace --project-root .` first. Evaluate the selected Feature SPEC at its returned `path/specs/<slug>/SPEC.md`. Do not implement fixes while evaluating unless the user explicitly asks after the evaluation.
 
 Treat this skill as the evaluation orchestrator. The semantic judge should be independent from the capability that implemented the change.
 
@@ -13,8 +13,8 @@ Treat this skill as the evaluation orchestrator. The semantic judge should be in
 
 1. Before evaluation, run `telos update-status codex --project-root .` in Codex or `telos update-status claude --project-root .` in Claude Code when the CLI is available. If it prints a message, show that update recommendation before continuing.
 2. Ensure `.telos/project.yml` exists. If missing, run `telos init --project-root .` and show the complete generated configuration and inferred command (or `verify: []`) before continuing. An empty verify list requires explicit manual evidence before approval.
-3. Read `.telos/specs/<slug>/SPEC.md` and extract acceptance criteria.
-4. Run `telos verify --changed --project-root .` exactly once. A `no-op` result continues to semantic evaluation. Before approving a scoped AC, run `telos evidence check --spec .telos/specs/<slug>/SPEC.md --project-root .`; Eval still judges whether the evidence is true.
+3. Read the selected Feature SPEC from the Telos workspace and extract acceptance criteria.
+4. Run `telos verify --changed --project-root .` exactly once. A `no-op` result continues to semantic evaluation. Before approving a scoped AC, run `telos evidence check --spec <workspace>/specs/<slug>/SPEC.md --project-root .`; Eval still judges whether the evidence is true.
 5. Stop if mechanical checks fail; report the command and failure.
 6. Compare the diff against Expected Change Surface. An unexpected file, dependency, API, or schema change is `uncertain` until the user confirms the expanded scope.
 7. Run a semantic evaluation pass for each acceptance criterion and each matching project risk check.

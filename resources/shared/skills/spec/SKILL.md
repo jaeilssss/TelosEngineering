@@ -5,7 +5,7 @@ description: "Create or refine a SPEC.md contract before implementation. Use whe
 
 # Spec Interview
 
-Do not write implementation code while using this skill. Your job is to remove ambiguity and create a concrete Feature SPEC at `.telos/specs/<slug>/SPEC.md`.
+Do not write implementation code while using this skill. Run `telos workspace --project-root .` first and create the Feature SPEC at its returned `path/specs/<slug>/SPEC.md`.
 
 Treat this skill as the spec orchestrator. Keep the user questioning loop in the main session by default. Use a subagent only for narrow, high-noise exploration that can be returned as a small index, such as a terminology scan in a large repository, and still use the ambiguity-check subagent before freezing.
 
@@ -33,7 +33,7 @@ Treat the text after `$spec` as the initial task input.
 8. If `Test strategy` is `TDD` or `test-after`, include an acceptance criterion that the related tests pass. If the task is a bug fix, also include an acceptance criterion requiring at least one regression test. If `Test strategy` is `none`, do not add those test criteria automatically.
 9. Challenge one important assumption with a contrary case.
 10. Continue until acceptance criteria are measurable and open questions are resolved.
-11. Create `.telos/specs/<slug>/SPEC.md` using `assets/SPEC.template.md`.
+11. Create the Feature SPEC in the workspace returned by `telos workspace --project-root .` using `assets/SPEC.template.md`.
 12. If open questions remain, keep asking.
 13. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
 14. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.

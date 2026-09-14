@@ -10,6 +10,8 @@ import { doctorProject, initProject } from "./project-setup.js";
 import { historySince } from "./history.js";
 import { install, uninstall } from "./installers.js";
 
+process.env.TELOS_HOME = join(tmpdir(), "telos-test-home");
+
 function featureSpec(root: string, slug: string, content = "# Feature SPEC\n") {
   const path = join(root, ".telos", "specs", slug, "SPEC.md");
   mkdirSync(join(path, ".."), { recursive: true });
@@ -114,9 +116,9 @@ test("hooks report project configuration problems once per session", () => {
   assert.match(first, /paths must contain/); assert.doesNotMatch(second, /paths must contain/);
 });
 
-function repository(files: Record<string, string>, project = "") {
+function repository(files: Record<string, string>, project = "", ignoreRuntimeState = true) {
   const root = mkdtempSync(join(tmpdir(), "telos-verify-"));
-  files = { ".gitignore": ".telos/runs/\n.telos/evals/\n.telos/active\n", ...files };
+  if (ignoreRuntimeState) files = { ".gitignore": ".telos/runs/\n.telos/evals/\n.telos/active\n.telos/hook-warnings/\n", ...files };
   for (const [path, content] of Object.entries(files)) {
     const target = join(root, path); mkdirSync(join(target, ".."), { recursive: true }); writeFileSync(target, content);
   }
@@ -134,6 +136,30 @@ test("requires a fresh verification snapshot before recording a result", () => {
   writeFileSync(join(root, "src", "app.ts"), "changed"); storeVerificationSnapshot(root, verifyChanged(root));
   writeFileSync(join(root, "src", "app.ts"), "changed again");
   assert.throws(() => recordResult(root, "fresh-proof", "approved", "all good"), /worktree changed/);
+});
+
+test("records successfully when only unignored Telos runtime state changes after verification", () => {
+  const root = repository({ "src/app.ts": "initial" }, "modules:\n  - name: app\n    paths: [\"src/**\"]\n    verify: [\"node -e \\\"process.exit(0)\\\"\"]\n", false);
+  featureSpec(root, "runtime-only"); startRun(root, "runtime-only", [], 2);
+  storeVerificationSnapshot(root, verifyChanged(root));
+  assert.equal(recordResult(root, "runtime-only", "approved", "all good").status, "complete");
+});
+
+test("records successfully when tracked Telos runtime state changes after verification", () => {
+  const root = repository({ "src/app.ts": "initial" }, "modules:\n  - name: app\n    paths: [\"src/**\"]\n    verify: [\"node -e \\\"process.exit(0)\\\"\"]\n");
+  featureSpec(root, "tracked-runtime"); startRun(root, "tracked-runtime", [], 2);
+  execFileSync("git", ["add", "-f", ".telos/runs/tracked-runtime.json"], { cwd: root });
+  execFileSync("git", ["-c", "user.name=Telos", "-c", "user.email=telos@example.test", "commit", "--quiet", "-m", "track runtime state"], { cwd: root });
+  storeVerificationSnapshot(root, verifyChanged(root));
+  assert.equal(recordResult(root, "tracked-runtime", "approved", "all good").status, "complete");
+});
+
+test("keeps source changes after verification blocked and identifies the changed path", () => {
+  const root = repository({ "src/app.ts": "initial" }, "modules:\n  - name: app\n    paths: [\"src/**\"]\n    verify: [\"node -e \\\"process.exit(0)\\\"\"]\n");
+  featureSpec(root, "source-change"); startRun(root, "source-change", [], 2);
+  writeFileSync(join(root, "src", "app.ts"), "verified"); storeVerificationSnapshot(root, verifyChanged(root));
+  writeFileSync(join(root, "src", "app.ts"), "changed after verification");
+  assert.throws(() => recordResult(root, "source-change", "approved", "all good"), /Changed paths since verification:\n- src\/app.ts/);
 });
 
 test("persists a failed Stage 1 snapshot so the rejection can be recorded", () => {
@@ -339,7 +365,19 @@ risks:
 test("initializes and diagnoses project configuration", () => {
   const root = repository({ "package.json": JSON.stringify({ scripts: { test: "node --test" } }) });
   const created = initProject(root); assert.deepEqual(created.verify, ["npm test"]); assert.match(created.config, /paths: \["\*\*"\]/);
-  assert.throws(() => initProject(root), /already exists/); const diagnosis = doctorProject(root); assert.equal(diagnosis.status, "passed"); assert.equal(diagnosis.modules[0].commands[0].status, "passed");
+  assert.deepEqual(created.gitignoreAdded, []); assert.throws(() => initProject(root), /already exists/); const diagnosis = doctorProject(root); assert.equal(diagnosis.status, "passed"); assert.deepEqual(diagnosis.warnings, []); assert.equal(diagnosis.modules[0].commands[0].status, "passed");
+});
+
+test("initialization adds runtime state ignores and doctor warns about tracked runtime state", () => {
+  const root = repository({ "README.md": "initial" }, "", false);
+  const created = initProject(root, false, "repository");
+  assert.deepEqual(created.gitignoreAdded, [".telos/runs/", ".telos/evals/", ".telos/active", ".telos/hook-warnings/"]);
+  assert.match(readFileSync(join(root, ".gitignore"), "utf8"), /\.telos\/hook-warnings\//);
+  mkdirSync(join(root, ".telos", "runs"), { recursive: true }); writeFileSync(join(root, ".telos", "runs", "old.json"), "{}");
+  execFileSync("git", ["add", "-f", ".telos/runs/old.json"], { cwd: root });
+  execFileSync("git", ["-c", "user.name=Telos", "-c", "user.email=telos@example.test", "commit", "--quiet", "-m", "track runtime state"], { cwd: root });
+  const diagnosis = doctorProject(root);
+  assert.equal(diagnosis.status, "warning"); assert.match(diagnosis.warnings.join("\n"), /\.telos\/runs\/old\.json is Git-tracked/);
 });
 
 test("doctor reports path counts and risk metadata and fails clearly", () => {
@@ -495,7 +533,7 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   const review = readFileSync(join(shared, "review", "SKILL.md"), "utf8");
   assert.match(run, /Ensure `.telos\/project.yml` exists.*run `telos init --project-root \.`/); assert.match(run, /Eval owns `telos verify --changed`/); assert.match(run, /Never retry `uncertain` automatically/); assert.doesNotMatch(run, /rejected or uncertain.*retry/i);
   assert.match(evalSkill, /Run `telos verify --changed --project-root \.` exactly once/); assert.match(evalSkill, /A `no-op` result continues to semantic evaluation/); assert.match(evalSkill, /Ensure `.telos\/project.yml` exists/); assert.match(evalSkill, /another model or profile/);
-  assert.match(review, /Never edit `.telos\/project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
+  assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
   const promptText = [run, evalSkill, review, readFileSync(join(shared, "spec", "SKILL.md"), "utf8"), readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");
   assert.doesNotMatch(promptText, /gradlew|mvnw|npm (?:test|run)|pytest|go test|cargo test|Gradle|Maven/);
 });

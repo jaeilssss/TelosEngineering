@@ -118,7 +118,7 @@ telos init --project-root .
 telos doctor --project-root .
 ```
 
-`init`은 `paths: ["**"]`인 모듈 하나를 만들고, 저장소 표식을 바탕으로 검증 명령을 최대 하나만 추론합니다. 확신할 수 없으면 `verify: []`을 기록합니다. `doctor`는 설정 파싱, 모듈별 경로 일치 수, 각 검증 명령의 결과를 보여줍니다.
+`init`은 `paths: ["**"]`인 모듈 하나를 만들고, 저장소 표식을 바탕으로 검증 명령을 최대 하나만 추론합니다. 확신할 수 없으면 `verify: []`을 기록합니다. 또한 `.telos/runs/`, `.telos/evals/`, `.telos/active`, `.telos/hook-warnings/`를 `.gitignore`에 추가합니다. `doctor`는 설정 파싱, 모듈별 경로 일치 수, 각 검증 명령의 결과와 잘못 추적된 Telos 런타임 상태를 보여줍니다.
 
 ## 이력과 리뷰
 

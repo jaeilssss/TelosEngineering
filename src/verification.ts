@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
+import { workspaceFor } from "./storage.js";
 
 export interface ModuleConfig { name: string; paths: string[]; verify: string[]; }
 export interface RiskConfig { id: string; when: string[]; check: string; fail_when: "found" | "nonzero"; added?: string; origin?: string; caught?: number; }
@@ -11,6 +12,8 @@ export interface VerificationResult { status: "passed" | "no-op"; reason?: "no-c
 export interface FailedVerificationResult { status: "failed"; error: string; changedPaths: string[]; modules: string[]; commands: string[]; risks: string[]; }
 export type VerificationAttempt = VerificationResult | FailedVerificationResult;
 export class VerificationError extends Error { constructor(message: string, public attempt?: FailedVerificationResult) { super(message); } }
+export const runtimeStateIgnoreEntries = [".telos/runs/", ".telos/evals/", ".telos/active", ".telos/hook-warnings/"];
+export const isTelosRuntimeState = (path: string): boolean => runtimeStateIgnoreEntries.some((entry) => entry.endsWith("/") ? path === entry.slice(0, -1) || path.startsWith(entry) : path === entry);
 
 const strings = (value: unknown, field: string, allowEmpty = false): string[] => {
   if (!Array.isArray(value) || (!allowEmpty && value.length === 0) || value.some((item) => typeof item !== "string" || !item.trim())) throw new VerificationError(`${field} must be ${allowEmpty ? "a" : "a non-empty"} list of non-empty strings`);
@@ -43,8 +46,8 @@ export function parseProjectConfig(text: string): ProjectConfig {
 }
 
 export function loadProjectConfig(root: string): ProjectConfig {
-  const path = join(root, ".telos", "project.yml");
-  if (!existsSync(path)) throw new VerificationError(".telos/project.yml is missing; run `telos init --project-root .`");
+  const path = join(workspaceFor(root).path, "project.yml");
+  if (!existsSync(path)) throw new VerificationError("Telos project.yml is missing; run `telos init --project-root .`");
   return parseProjectConfig(readFileSync(path, "utf8"));
 }
 
@@ -68,10 +71,24 @@ export function changedPaths(root: string): string[] {
 
 export function worktreeFingerprint(root: string): string {
   try {
-    const hash = createHash("sha256"); hash.update(execFileSync("git", ["diff", "--binary", "HEAD"], { cwd: root, stdio: ["ignore", "pipe", "ignore"] }));
-    for (const path of gitLines(root, ["ls-files", "--others", "--exclude-standard"]).sort()) { hash.update(`\0${path}\0`); hash.update(readFileSync(join(root, path))); }
+    const exclusions = runtimeStateIgnoreEntries.map((entry) => `:(exclude)${entry}`);
+    const hash = createHash("sha256"); hash.update(execFileSync("git", ["diff", "--binary", "HEAD", "--", ".", ...exclusions], { cwd: root, stdio: ["ignore", "pipe", "ignore"] }));
+    for (const path of gitLines(root, ["ls-files", "--others", "--exclude-standard"]).filter((path) => !isTelosRuntimeState(path)).sort()) { hash.update(`\0${path}\0`); hash.update(readFileSync(join(root, path))); }
     return hash.digest("hex");
   } catch { throw new VerificationError("cannot fingerprint Git worktree"); }
+}
+
+export function worktreePathDigests(root: string): Record<string, string> {
+  try {
+    const exclusions = runtimeStateIgnoreEntries.map((entry) => `:(exclude)${entry}`);
+    const tracked = gitLines(root, ["diff", "--name-only", "HEAD", "--", ".", ...exclusions]);
+    const untracked = gitLines(root, ["ls-files", "--others", "--exclude-standard"]);
+    return [...new Set([...tracked, ...untracked])].filter((path) => !isTelosRuntimeState(path)).sort().reduce<Record<string, string>>((digests, path) => {
+      const file = join(root, path);
+      digests[path] = existsSync(file) ? createHash("sha256").update(readFileSync(file)).digest("hex") : "deleted";
+      return digests;
+    }, {});
+  } catch { throw new VerificationError("cannot inspect Git worktree changes"); }
 }
 
 function tail(stdout: string | null | undefined, stderr: string | null | undefined): string {
