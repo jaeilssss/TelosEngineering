@@ -195,6 +195,18 @@ export function retryRun(root: string, slug: string, capabilities: string[]): Ru
   return save(root, slug, state);
 }
 
+export function extendRun(root: string, slug: string, by: number): RunState {
+  const state = loadRunState(root, slug);
+  if (!state || state.status === "running" || state.status === "complete") throw new RunStateError("extend requires a completed iteration limit run");
+  ensureMatchingSpec(root, slug, state);
+  if (!Number.isInteger(by) || by < 1) throw new RunStateError("extension must be at least 1 iteration");
+  if (state.iteration < state.maxIterations) throw new RunStateError("extend requires the iteration limit to be reached");
+  const previousLimit = state.maxIterations;
+  state.maxIterations += by;
+  state.history.push({ iteration: state.iteration, status: "extended", summary: `iteration limit extended from ${previousLimit} to ${state.maxIterations}`, at: now() });
+  return save(root, slug, state);
+}
+
 export function unblockRun(root: string, slug: string, summary: string): RunState {
   const state = loadRunState(root, slug);
   if (!state || state.status !== "blocked") throw new RunStateError("unblock requires a blocked Telos run");

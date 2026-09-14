@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { loadRunState, recordResult, retryRun, RunStateError, startRun, storeVerificationSnapshot, unblockRun } from "./run-state.js";
+import { extendRun, loadRunState, recordResult, retryRun, RunStateError, startRun, storeVerificationSnapshot, unblockRun } from "./run-state.js";
 import { checkEvidence, parseProjectConfig, runConfiguredCommand, VerificationError, verifyChanged } from "./verification.js";
 import { doctorProject, initProject } from "./project-setup.js";
 import { historySince } from "./history.js";
@@ -198,6 +198,20 @@ test("unblock advances the iteration and respects the run limit", () => {
   const root = repository({ "README.md": "initial" }); verifiedRun(root, "bounded-unblock", 1);
   recordResult(root, "bounded-unblock", "blocked", "waiting");
   assert.throws(() => unblockRun(root, "bounded-unblock", "ready"), /iteration limit/);
+});
+
+test("extends only an exhausted SPEC run and resumes at the next iteration", () => {
+  const root = repository({ "README.md": "initial" }); verifiedRun(root, "extend-run", 1);
+  recordResult(root, "extend-run", "rejected", "AC1 | incomplete | npm test | Stage1: yes");
+  assert.throws(() => extendRun(root, "extend-run", 0), /at least 1/);
+  const extended = extendRun(root, "extend-run", 2);
+  assert.equal(extended.maxIterations, 3);
+  assert.equal(extended.iteration, 1);
+  assert.equal(extended.history.at(-1)?.status, "extended");
+  const resumed = retryRun(root, "extend-run", ["implementation"]);
+  assert.equal(resumed.status, "running");
+  assert.equal(resumed.iteration, 2);
+  assert.throws(() => extendRun(root, "extend-run", 1), /completed iteration limit/);
 });
 
 test("aggregates current and archived rejection history by Stage 1 result", () => {
