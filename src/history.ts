@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { RunState, RunStateError } from "./run-state.js";
+import { workspaceFor } from "./storage.js";
 
 export interface RejectionRecord { slug: string; iteration: number; ac: string; missing: string; verifiedBy: string; }
 export interface HistorySummary {
@@ -21,7 +22,7 @@ function cutoffFor(duration: string): Date {
 }
 
 function stateFiles(root: string): Array<{ slug: string; path: string }> {
-  const runs = join(root, ".telos", "runs");
+  const runs = join(workspaceFor(root).path, "runs");
   if (!existsSync(runs)) return [];
   const current = readdirSync(runs, { withFileTypes: true }).filter((entry) => entry.isFile() && entry.name.endsWith(".json")).map((entry) => ({ slug: entry.name.slice(0, -5), path: join(runs, entry.name) }));
   const archive = join(runs, "archive");

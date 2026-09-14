@@ -128,7 +128,7 @@ telos init --project-root .
 telos doctor --project-root .
 ```
 
-`init` creates one `paths: ["**"]` module and infers at most one verification command from repository markers. It writes `verify: []` when detection is uncertain. `doctor` parses the configuration, reports module path matches, and checks every configured command.
+`init` creates one `paths: ["**"]` module and infers at most one verification command from repository markers. It writes `verify: []` when detection is uncertain, and adds `.telos/runs/`, `.telos/evals/`, `.telos/active`, and `.telos/hook-warnings/` to `.gitignore`. `doctor` parses the configuration, reports module path matches, checks every configured command, and warns about Git-tracked Telos runtime state.
 
 ## History and review
 

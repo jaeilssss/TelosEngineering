@@ -6,6 +6,7 @@ import { loadRunState, recordResult, retryRun, RunStateError, startRun, storeVer
 import { updateStatus } from "./update-status.js";
 import { VERSION } from "./version.js";
 import { checkEvidence, VerificationError, verifyChanged } from "./verification.js";
+import { workspaceFor } from "./storage.js";
 
 const args = process.argv.slice(2); const take = (name: string) => { const index = args.indexOf(name); return index < 0 ? undefined : args[index + 1]; }; const all = (name: string) => args.flatMap((value, index) => value === name && args[index + 1] ? [args[index + 1]] : []); const root = take("--project-root") ?? "."; const home = take("--home"); const output = (value: unknown) => console.log(JSON.stringify(value, null, 2));
 try {
@@ -13,7 +14,12 @@ try {
   else if (["install", "update"].includes(args[0]) && ["codex", "claude", "all"].includes(args[1])) install(args[1] as "codex" | "claude" | "all", home).forEach((message) => console.log(message));
   else if (args[0] === "uninstall" && ["codex", "claude", "all"].includes(args[1])) uninstall(args[1] as "codex" | "claude" | "all", home).forEach((message) => console.log(message));
   else if (args[0] === "update-status" && ["codex", "claude", "all"].includes(args[1])) (args[1] === "all" ? ["codex", "claude"] : [args[1]]).map((target) => updateStatus(target as "codex" | "claude", home)).forEach(output);
-  else if (args[0] === "init") output(initProject(root, args.includes("--force")));
+  else if (args[0] === "workspace") output(workspaceFor(root));
+  else if (args[0] === "init") {
+    const storage = take("--storage");
+    if (storage !== undefined && !["global", "repository"].includes(storage)) throw new Error("--storage must be global or repository");
+    output(initProject(root, args.includes("--force"), storage as "global" | "repository" | undefined));
+  }
   else if (args[0] === "doctor") output(doctorProject(root));
   else if (args[0] === "history" && take("--since")) output(historySince(root, take("--since")!));
   else if (args[0] === "verify" && args[1] === "--changed") {
@@ -30,5 +36,5 @@ try {
   else if (args[0] === "run" && args[1] === "retry" && take("--spec")) output(retryRun(root, take("--spec")!, all("--capability")));
   else if (args[0] === "run" && args[1] === "record" && take("--spec") && take("--status") && take("--summary")) output(recordResult(root, take("--spec")!, take("--status") as any, take("--summary")!));
   else if (args[0] === "run" && args[1] === "unblock" && take("--spec") && take("--summary")) output(unblockRun(root, take("--spec")!, take("--summary")!));
-  else throw new Error("usage: telos <install|update|uninstall|update-status|init|doctor|history|verify|run> ...");
+  else throw new Error("usage: telos <install|update|uninstall|update-status|workspace|init|doctor|history|verify|run> ...");
 } catch (error) { console.error(`telos: ${(error as Error).message}`); process.exitCode = error instanceof RunStateError ? 1 : 2; }

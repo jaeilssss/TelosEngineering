@@ -5,12 +5,12 @@ description: "Orchestrate installed capabilities from a frozen SPEC.md until its
 
 # Telos V2 Run
 
-Use the selected frozen Feature SPEC at `.telos/specs/<slug>/SPEC.md` as the goal contract. Telos owns the Spec and the final Eval; installed skills, plugins, and agents are replaceable capabilities used to achieve that contract.
+Run `telos workspace --project-root .` first. Use the selected frozen Feature SPEC at its returned `path/specs/<slug>/SPEC.md` as the goal contract. Telos owns the Spec and the final Eval; installed skills, plugins, and agents are replaceable capabilities used to achieve that contract.
 
 ## Preflight
 
 1. Run `telos update-status codex --project-root .` in Codex or `telos update-status claude --project-root .` in Claude Code when the CLI is available. Show an update recommendation before continuing when one is returned.
-2. Obtain the explicit Feature SPEC slug, then read `.telos/specs/<slug>/SPEC.md`. Stop and direct the user to `$spec` if it is missing, draft, or has unresolved questions.
+2. Obtain the explicit Feature SPEC slug, then read it from the Telos workspace. Stop and direct the user to `$spec` if it is missing, draft, or has unresolved questions.
 3. Inspect the relevant repository paths and the current worktree state before implementation.
 4. Read the Spec baseline, Expected Change Surface, Verification Plan, and acceptance criteria. If meaningful baseline drift exists, ask the user to reconfirm the spec before changing code.
 5. Ensure `.telos/project.yml` exists. If it is missing, run `telos init --project-root .`, show the complete generated configuration and inferred command (or `verify: []`) to the user, then continue. `verify: []` permits implementation but requires explicit manual evidence before approval.

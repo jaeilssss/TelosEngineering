@@ -23,7 +23,7 @@ Use `telos history --since <duration> --project-root .` to inspect repeated reje
 
 - Never empty a module's `verify` list.
 - Never remove module paths, verification commands, or risks.
-- Never edit `.telos/project.yml` directly.
+- Never edit the Telos workspace `project.yml` directly.
 - Never weaken an existing gate to make a rejection disappear.
 - If a problem cannot be expressed reliably with grep, say so. Prefer a regression test or tool-owned rule instead of inventing a fragile grep check.
 - A risk with `caught: 0` is only a human review candidate. Do not remove it automatically.

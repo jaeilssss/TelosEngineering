@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { homedir } from "node:os";
+import { basename, join, resolve } from "node:path";
 
 let parseYaml;
 try { ({ parse: parseYaml } = await import("yaml")); }
@@ -8,9 +10,18 @@ catch { ({ parse: parseYaml } = await import("../vendor/yaml/dist/index.js")); }
 
 const input = (() => { try { return JSON.parse(readFileSync(0, "utf8")); } catch { return {}; } })();
 const root = resolve(input.cwd ?? process.env.CLAUDE_PROJECT_DIR ?? process.cwd());
-const configPath = join(root, ".telos", "project.yml");
+function workspaceFor(projectRoot) {
+  const repository = join(projectRoot, ".telos");
+  if (existsSync(repository)) return repository;
+  let source = projectRoot; let label = basename(projectRoot) || "project";
+  try { const remote = execFileSync("git", ["config", "--get", "remote.origin.url"], { cwd: projectRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim(); if (remote) { source = remote; label = basename(remote).replace(/\.git$/, ""); } } catch {}
+  const id = `${label.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "project"}-${createHash("sha256").update(source).digest("hex").slice(0, 12)}`;
+  return join(process.env.TELOS_HOME || join(homedir(), ".telos"), "projects", id);
+}
+const workspace = workspaceFor(root);
+const configPath = join(workspace, "project.yml");
 let problem;
-if (!existsSync(configPath)) problem = ".telos/project.yml is missing; run `telos init --project-root .`";
+if (!existsSync(configPath)) problem = "Telos project.yml is missing; run `telos init --project-root .`";
 else {
   try {
     const config = parseYaml(readFileSync(configPath, "utf8"));
@@ -25,13 +36,13 @@ if (problem) {
   const session = input.session_id ?? input.sessionId;
   let shouldWarn = true;
   if (session) {
-    const directory = join(root, ".telos", "hook-warnings"); mkdirSync(directory, { recursive: true });
+    const directory = join(workspace, "hook-warnings"); mkdirSync(directory, { recursive: true });
     const marker = join(directory, createHash("sha256").update(`${session}:project-config`).digest("hex"));
     try { writeFileSync(marker, "", { flag: "wx" }); } catch (error) { if (error.code === "EEXIST") shouldWarn = false; }
   }
   if (shouldWarn) console.log(`spec-first: ${problem}`);
 }
 console.log(`Telos spec-first context:
-- Feature contracts live at .telos/specs/<slug>/SPEC.md; .telos/active selects the local active slug.
+- Feature contracts live in the Telos workspace; use \`telos workspace --project-root .\` to locate them.
 - Use /telos:spec to freeze a contract, /telos:run for the bounded loop, /telos:eval for evidence-based judgment, and /telos:review for report-only history proposals.
 - The current harness selects implementation capabilities. Eval owns mechanical verification and runs it once per iteration.`);

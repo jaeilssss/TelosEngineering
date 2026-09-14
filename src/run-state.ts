@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { VerificationAttempt, worktreeFingerprint } from "./verification.js";
+import { VerificationAttempt, worktreeFingerprint, worktreePathDigests } from "./verification.js";
+import { workspaceFor } from "./storage.js";
 
 export type EvalStatus = "approved" | "rejected" | "uncertain" | "blocked";
-export interface VerificationSnapshot { at: string; specHash: string; iteration: number; fingerprint: string; result: VerificationAttempt; }
+export interface VerificationSnapshot { at: string; specHash: string; iteration: number; fingerprint: string; result: VerificationAttempt; pathDigests?: Record<string, string>; }
 export interface RunState {
   status: "running" | "complete" | EvalStatus;
   maxIterations: number;
@@ -18,10 +19,10 @@ export interface RunState {
 
 const now = () => new Date().toISOString();
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const pathFor = (root: string, slug: string) => join(root, ".telos", "runs", `${slug}.json`);
-const specPathFor = (root: string, slug: string) => join(root, ".telos", "specs", slug, "SPEC.md");
-const reportPathFor = (root: string, slug: string, iteration: number) => join(root, ".telos", "evals", slug, `${iteration}.md`);
-const activePathFor = (root: string) => join(root, ".telos", "active");
+const pathFor = (root: string, slug: string) => join(workspaceFor(root).path, "runs", `${slug}.json`);
+const specPathFor = (root: string, slug: string) => join(workspaceFor(root).path, "specs", slug, "SPEC.md");
+const reportPathFor = (root: string, slug: string, iteration: number) => join(workspaceFor(root).path, "evals", slug, `${iteration}.md`);
+const activePathFor = (root: string) => join(workspaceFor(root).path, "active");
 export class RunStateError extends Error {}
 
 function requireSlug(slug: string): void {
@@ -30,7 +31,7 @@ function requireSlug(slug: string): void {
 
 function currentSpecHash(root: string, slug: string): string {
   const path = specPathFor(root, slug);
-  if (!existsSync(path)) throw new RunStateError(`feature SPEC is missing: .telos/specs/${slug}/SPEC.md`);
+  if (!existsSync(path)) throw new RunStateError(`feature SPEC is missing: ${path}`);
   return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
@@ -49,7 +50,7 @@ export function loadRunState(root: string, slug: string): RunState | undefined {
 
 function save(root: string, slug: string, state: RunState): RunState {
   const path = pathFor(root, slug);
-  mkdirSync(join(root, ".telos", "runs"), { recursive: true });
+  mkdirSync(join(workspaceFor(root).path, "runs"), { recursive: true });
   const temporary = `${path}.tmp`;
   writeFileSync(temporary, `${JSON.stringify(state, null, 2)}\n`);
   renameSync(temporary, path);
@@ -60,14 +61,14 @@ function archivePreviousRun(root: string, slug: string, timestamp: string): void
   const statePath = pathFor(root, slug);
   if (!existsSync(statePath)) return;
   const base = `${slug}-${timestamp.replace(/[.:]/g, "-")}`;
-  const runArchive = join(root, ".telos", "runs", "archive");
-  const evalArchive = join(root, ".telos", "evals", "archive");
+  const runArchive = join(workspaceFor(root).path, "runs", "archive");
+  const evalArchive = join(workspaceFor(root).path, "evals", "archive");
   mkdirSync(runArchive, { recursive: true });
   let counter = 0;
   let id = `${base}-${counter}`;
   while (existsSync(join(runArchive, `${id}.json`)) || existsSync(join(evalArchive, id))) { counter += 1; id = `${base}-${counter}`; }
   renameSync(statePath, join(runArchive, `${id}.json`));
-  const evalPath = join(root, ".telos", "evals", slug);
+  const evalPath = join(workspaceFor(root).path, "evals", slug);
   if (existsSync(evalPath)) { mkdirSync(evalArchive, { recursive: true }); renameSync(evalPath, join(evalArchive, id)); }
 }
 
@@ -95,7 +96,7 @@ export function storeVerificationSnapshot(root: string, result: VerificationAtte
   const state = loadRunState(root, slug);
   if (!state || state.status !== "running") return false;
   ensureMatchingSpec(root, slug, state);
-  state.latestVerification = { at: now(), specHash: state.specHash, iteration: state.iteration, fingerprint: worktreeFingerprint(root), result };
+  state.latestVerification = { at: now(), specHash: state.specHash, iteration: state.iteration, fingerprint: worktreeFingerprint(root), pathDigests: worktreePathDigests(root), result };
   save(root, slug, state);
   return true;
 }
@@ -146,8 +147,8 @@ ${list(snapshot.result.risks)}
 ${history}
 `;
   const path = reportPathFor(root, slug, state.iteration);
-  mkdirSync(join(root, ".telos", "evals", slug), { recursive: true });
-  if (existsSync(path)) throw new RunStateError(`Eval report already exists: .telos/evals/${slug}/${state.iteration}.md`);
+  mkdirSync(join(workspaceFor(root).path, "evals", slug), { recursive: true });
+  if (existsSync(path)) throw new RunStateError(`Eval report already exists: ${path}`);
   const temporary = `${path}.tmp`;
   writeFileSync(temporary, content); renameSync(temporary, path);
 }
@@ -169,7 +170,11 @@ export function recordResult(root: string, slug: string, status: EvalStatus, sum
   ensureMatchingSpec(root, slug, state);
   const snapshot = state.latestVerification;
   if (!snapshot || snapshot.specHash !== state.specHash || snapshot.iteration !== state.iteration) throw new RunStateError("a verification snapshot for the current iteration is required");
-  if (snapshot.fingerprint !== worktreeFingerprint(root)) throw new RunStateError("worktree changed after verification; run `telos verify --changed` again");
+  if (snapshot.fingerprint !== worktreeFingerprint(root)) {
+    const current = worktreePathDigests(root);
+    const paths = [...new Set([...Object.keys(snapshot.pathDigests ?? {}), ...Object.keys(current)])].filter((path) => snapshot.pathDigests?.[path] !== current[path]);
+    throw new RunStateError(`worktree changed after verification.${paths.length ? `\nChanged paths since verification:\n${paths.map((path) => `- ${path}`).join("\n")}` : ""}\nRun \`telos verify --changed\` again.`);
+  }
   if (existsSync(reportPathFor(root, slug, state.iteration))) throw new RunStateError(`Eval report already exists: .telos/evals/${slug}/${state.iteration}.md`);
   const timestamp = now();
   state.history.push({ iteration: state.iteration, status, summary, at: timestamp });
