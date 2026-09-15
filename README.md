@@ -53,6 +53,18 @@ npm update -g telos-kit
 telos update all
 ```
 
+`telos update codex` updates the local Codex marketplace and re-registers Telos. Restart Codex completely before using the updated skills.
+
+`telos update claude` copies the updated Claude marketplace, but Claude Code runs marketplace plugins from its own cache. After updating, run the following inside Claude Code, then reload plugins (or restart Claude Code):
+
+```text
+/plugin marketplace update telos-kit
+/plugin update telos@telos-kit
+/reload-plugins
+```
+
+If the plugin still shows an earlier version, use `/plugin` to verify that `telos@telos-kit` is installed and enabled.
+
 ## Workflow
 
 ```text

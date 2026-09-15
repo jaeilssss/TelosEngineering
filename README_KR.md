@@ -53,6 +53,18 @@ npm update -g telos-kit
 telos update all
 ```
 
+`telos update codex`는 Codex의 로컬 marketplace와 Telos 플러그인 등록을 함께 갱신합니다. 업데이트한 스킬을 사용하기 전에 Codex를 완전히 재시작하세요.
+
+`telos update claude`는 Claude marketplace 파일을 갱신하지만, Claude Code는 마켓플레이스 플러그인을 별도 캐시에 복사해 실행합니다. 업데이트 후 Claude Code 안에서 아래 명령을 실행하고 플러그인을 다시 불러오거나 Claude Code를 재시작하세요.
+
+```text
+/plugin marketplace update telos-kit
+/plugin update telos@telos-kit
+/reload-plugins
+```
+
+그래도 이전 버전으로 보이면 `/plugin`에서 `telos@telos-kit`이 설치·활성화되어 있는지 확인하세요.
+
 ## 워크플로우
 
 ```text
