@@ -546,6 +546,9 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   const evalSkill = readFileSync(join(shared, "eval", "SKILL.md"), "utf8");
   const review = readFileSync(join(shared, "review", "SKILL.md"), "utf8");
   assert.match(run, /Ensure `.telos\/project.yml` exists.*run `telos init --project-root \.`/); assert.match(run, /Eval owns `telos verify --changed`/); assert.match(run, /Never retry `uncertain` automatically/); assert.doesNotMatch(run, /rejected or uncertain.*retry/i);
+  assert.match(run, /`telos run record` closes an iteration; it does \*\*not\*\* necessarily close this\r?\nrequest/);
+  assert.match(run, /`rejected` is an iteration result, not a terminal run result/);
+  assert.match(run, /End\r?\nthe response only when the final result is `approved`, `uncertain`, `blocked`,\r?\nor the CLI iteration limit has been reached/);
   assert.match(evalSkill, /Run `telos verify --changed --project-root \.` exactly once/); assert.match(evalSkill, /A `no-op` result continues to semantic evaluation/); assert.match(evalSkill, /Ensure `.telos\/project.yml` exists/); assert.match(evalSkill, /another model or profile/);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
   const promptText = [run, evalSkill, review, readFileSync(join(shared, "spec", "SKILL.md"), "utf8"), readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");

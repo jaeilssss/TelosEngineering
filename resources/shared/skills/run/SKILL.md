@@ -27,9 +27,12 @@ Run `telos workspace --project-root .` first. Use the selected frozen Feature SP
      `telos run unblock --spec <slug> --project-root . --summary "..."`, then
      proceed to Execution Loop step 1.
 
-   - If the status is `rejected` or `uncertain`: call
+   - If the status is `rejected`: call
      `telos run retry --spec <slug> --project-root .` and proceed to Execution
      Loop step 1.
+
+   - If the status is `uncertain`: stop for user direction. Do not retry an
+     uncertain result automatically.
 
    - If there is no run state, or the status is `complete`: start a new loop with
      `telos run start --spec <slug> --project-root .` and proceed to Execution
@@ -41,16 +44,22 @@ Run `telos workspace --project-root .` first. Use the selected frozen Feature SP
 
 **Progress reporting is not a terminal state.**
 
-Once this skill is invoked, do not end the response until one of these has happened:
+`telos run record` closes an iteration; it does **not** necessarily close this
+request. In particular, `record --status rejected` is an automatic retry
+signal, never a result to return to the user.
 
-  (a) a verdict was written with `telos run record`, or
-  (b) Execution Loop step 8 applies and user direction is genuinely required.
+Once this skill is invoked, keep executing iterations in the same request. End
+the response only when the final result is `approved`, `uncertain`, `blocked`,
+or the CLI iteration limit has been reached. Stop earlier only when Execution
+Loop step 8 requires user direction.
 
 Announcing what remains, restating the run status, or summarizing partial work is
 NOT a stopping point. If the full implementation does not fit in one response,
 implement the subset of acceptance criteria that does fit, then record the
 iteration with `telos run record --status rejected` listing the remaining criteria.
-A partial iteration recorded as `rejected` is normal progress, not a failure.
+A partial iteration recorded as `rejected` is normal progress, not a failure:
+analyze it, call `telos run retry`, then implement and evaluate the next
+iteration before returning a response.
 
 Maintain a compact iteration record containing changes, verification evidence, failures, and the next action.
 
@@ -58,7 +67,7 @@ Maintain a compact iteration record containing changes, verification evidence, f
 2. Invoke `$eval` (or perform its same evidence-based gate when invoked as part of this run) against the frozen Spec. Eval owns `telos verify --changed`; do not run mechanical verification separately in the same iteration.
 3. Record the final Eval result with `telos run record --spec <slug> --project-root . --status approved|rejected|uncertain|blocked --summary "..."`. For `rejected`, every summary line must use `<AC> | <missing evidence or behavior> | <how verified> | Stage1: yes|no`.
 4. If final Eval is approved, report completion with acceptance-criteria evidence.
-5. If final Eval is rejected, analyze the failed evidence, then run `telos run retry --spec <slug> --project-root . --capability <id>` for the next iteration. Fix, test, and evaluate again.
+5. If final Eval is rejected, analyze the failed evidence, then run `telos run retry --spec <slug> --project-root . --capability <id>` for the next iteration. Fix, test, and evaluate again. Do not report the rejection as the final result.
 6. If final Eval is uncertain, stop for user direction. Explain the choices: explicitly retry or request consensus, or revise the SPEC and start a new run. Never retry `uncertain` automatically.
 7. A blocked run resumes only after explicit user direction through `telos run unblock --spec <slug> --project-root . --summary "..."`.
 8. Stop and ask for direction when the Spec conflicts with the repository, scope must expand, or continued looping would not create new evidence. If the CLI iteration limit is reached and the user explicitly asks to continue this SPEC, run `telos run extend --spec <slug> --project-root . --by <additional-iterations>` and then resume it with `telos run retry` or `telos run unblock`. This preserves the run history and continues at the next iteration; it changes only that SPEC's limit.
@@ -69,6 +78,7 @@ Maintain a compact iteration record containing changes, verification evidence, f
 - Keep implementation, test, and evaluation evidence distinct. An implementation session does not approve its own result.
 - Never report `running` as completion. It is a stored status value, not a background worker. No code changes while no tool calls are being made.
 - Every iteration must end with a recorded verdict. An iteration that stops without `telos run record` leaves no history, so the next invocation has to rediscover the situation from scratch.
+- `rejected` is an iteration result, not a terminal run result. It must be followed by `telos run retry` in the same request whenever an iteration remains.
 
 ## Completion
 
