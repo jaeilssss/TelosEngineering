@@ -35,7 +35,11 @@ Telos는 현재 iteration에 필요한 것만 고른다.
 - `running` is a stored status, not a background worker. Never report it as completion.
 - Resuming a `running` iteration means implementing, not reporting status.
 - Progress reporting is not a terminal state.
-- A partial iteration must be recorded with `telos run record --status rejected`.
+- `telos run record --status rejected` closes only the current iteration. It is
+  never a terminal response: automatically run `telos run retry`, then
+  implement and evaluate the next iteration while one remains.
+- Return control to the user only for `approved`, `uncertain`, `blocked`, an
+  exhausted iteration limit, or a genuine scope/conflict decision.
 - One Feature SPEC must be small enough that one iteration finishes in one response.
 
 ## 3단계 평가 게이트 (비용 순서)
