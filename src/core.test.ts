@@ -9,6 +9,7 @@ import { checkEvidence, parseProjectConfig, runConfiguredCommand, VerificationEr
 import { doctorProject, initProject } from "./project-setup.js";
 import { historySince } from "./history.js";
 import { install, uninstall } from "./installers.js";
+import { legacyWorkspacePath, workspaceFor } from "./storage.js";
 
 process.env.TELOS_HOME = join(tmpdir(), "telos-test-home");
 
@@ -49,6 +50,26 @@ test("rejects invalid slugs and missing Feature SPECs", () => {
   assert.throws(() => startRun(root, "missing-spec", [], 1), (error: unknown) => error instanceof RunStateError && /feature SPEC is missing/.test(error.message));
   assert.throws(() => loadRunState(root, "missing-spec"), (error: unknown) => error instanceof RunStateError && /feature SPEC is missing/.test(error.message));
   assert.throws(() => execFileSync(process.execPath, [join(process.cwd(), "dist", "cli.js"), "run", "start", "--project-root", root], { encoding: "utf8", stdio: "pipe" }), (error: unknown) => /--spec <slug> is required/.test((error as { stderr: string }).stderr));
+});
+
+test("always keeps Telos workspace data inside the project", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-workspace-"));
+  const workspace = workspaceFor(root);
+  assert.equal(workspace.path, join(root, ".telos"));
+  assert.equal(existsSync(workspace.path), true);
+  assert.throws(() => execFileSync(process.execPath, [join(process.cwd(), "dist", "cli.js"), "init", "--project-root", root, "--storage", "global"], { encoding: "utf8", stdio: "pipe" }), /--storage is no longer supported/);
+});
+
+test("copies a legacy global workspace into the project on first use", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-legacy-workspace-"));
+  const legacy = legacyWorkspacePath(root);
+  mkdirSync(join(legacy, "specs", "legacy-feature"), { recursive: true });
+  writeFileSync(join(legacy, "project.yml"), "modules:\n  - name: all\n    paths: [\"**\"]\n    verify: []\n");
+  writeFileSync(join(legacy, "specs", "legacy-feature", "SPEC.md"), "# Legacy SPEC\n");
+  const workspace = workspaceFor(root);
+  assert.equal(workspace.path, join(root, ".telos"));
+  assert.equal(readFileSync(join(workspace.path, "specs", "legacy-feature", "SPEC.md"), "utf8"), "# Legacy SPEC\n");
+  assert.equal(existsSync(legacy), true);
 });
 
 test("never overwrites an active running slug", () => {
@@ -379,12 +400,12 @@ risks:
 test("initializes and diagnoses project configuration", () => {
   const root = repository({ "package.json": JSON.stringify({ scripts: { test: "node --test" } }) });
   const created = initProject(root); assert.deepEqual(created.verify, ["npm test"]); assert.match(created.config, /paths: \["\*\*"\]/);
-  assert.deepEqual(created.gitignoreAdded, []); assert.throws(() => initProject(root), /already exists/); const diagnosis = doctorProject(root); assert.equal(diagnosis.status, "passed"); assert.deepEqual(diagnosis.warnings, []); assert.equal(diagnosis.modules[0].commands[0].status, "passed");
+  assert.equal(created.path, join(root, ".telos", "project.yml")); assert.deepEqual(created.gitignoreAdded, []); assert.throws(() => initProject(root), /already exists/); const diagnosis = doctorProject(root); assert.equal(diagnosis.status, "passed"); assert.deepEqual(diagnosis.warnings, []); assert.equal(diagnosis.modules[0].commands[0].status, "passed");
 });
 
 test("initialization adds runtime state ignores and doctor warns about tracked runtime state", () => {
   const root = repository({ "README.md": "initial" }, "", false);
-  const created = initProject(root, false, "repository");
+  const created = initProject(root);
   assert.deepEqual(created.gitignoreAdded, [".telos/runs/", ".telos/evals/", ".telos/active", ".telos/hook-warnings/"]);
   assert.match(readFileSync(join(root, ".gitignore"), "utf8"), /\.telos\/hook-warnings\//);
   mkdirSync(join(root, ".telos", "runs"), { recursive: true }); writeFileSync(join(root, ".telos", "runs", "old.json"), "{}");
@@ -542,6 +563,7 @@ test("uses project configuration for distinct frontend and JVM-style module path
 
 test("shared skills preserve Run and Eval workflow invariants", () => {
   const shared = join(process.cwd(), "resources", "shared", "skills");
+  const spec = readFileSync(join(shared, "spec", "SKILL.md"), "utf8");
   const run = readFileSync(join(shared, "run", "SKILL.md"), "utf8");
   const evalSkill = readFileSync(join(shared, "eval", "SKILL.md"), "utf8");
   const review = readFileSync(join(shared, "review", "SKILL.md"), "utf8");
@@ -550,7 +572,8 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(run, /`rejected` is an iteration result, not a terminal run result/);
   assert.match(run, /End\r?\nthe response only when the final result is `approved`, `uncertain`, `blocked`,\r?\nor the CLI iteration limit has been reached/);
   assert.match(evalSkill, /Run `telos verify --changed --project-root \.` exactly once/); assert.match(evalSkill, /A `no-op` result continues to semantic evaluation/); assert.match(evalSkill, /Ensure `.telos\/project.yml` exists/); assert.match(evalSkill, /another model or profile/);
+  assert.match(spec, /If the workspace has no `.telos\/project.yml`, run `telos init --project-root \.`/);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
-  const promptText = [run, evalSkill, review, readFileSync(join(shared, "spec", "SKILL.md"), "utf8"), readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");
+  const promptText = [run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");
   assert.doesNotMatch(promptText, /gradlew|mvnw|npm (?:test|run)|pytest|go test|cargo test|Gradle|Maven/);
 });

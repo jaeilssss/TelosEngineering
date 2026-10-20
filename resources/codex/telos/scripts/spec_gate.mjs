@@ -1,8 +1,6 @@
-import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { basename, join, relative, resolve } from "node:path";
+import { createHash } from "node:crypto";
+import { join, relative, resolve } from "node:path";
 
 let parseYaml;
 try { ({ parse: parseYaml } = await import("yaml")); }
@@ -11,12 +9,7 @@ catch { ({ parse: parseYaml } = await import("../vendor/yaml/dist/index.js")); }
 const input = (() => { try { return JSON.parse(readFileSync(0, "utf8")); } catch { return {}; } })();
 const root = resolve(input.cwd ?? process.cwd());
 function workspaceFor(projectRoot) {
-  const repository = join(projectRoot, ".telos");
-  if (existsSync(repository)) return repository;
-  let source = projectRoot; let label = basename(projectRoot) || "project";
-  try { const remote = execFileSync("git", ["config", "--get", "remote.origin.url"], { cwd: projectRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim(); if (remote) { source = remote; label = basename(remote).replace(/\.git$/, ""); } } catch {}
-  const id = `${label.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "project"}-${createHash("sha256").update(source).digest("hex").slice(0, 12)}`;
-  return join(process.env.TELOS_HOME || join(homedir(), ".telos"), "projects", id);
+  return join(projectRoot, ".telos");
 }
 const workspace = workspaceFor(root);
 const toolInput = input.tool_input ?? {};
