@@ -14,15 +14,16 @@ Treat the text after `$spec` as the initial task input.
 ## Workflow
 
 1. Before the main workflow, run `telos update-status codex --project-root .` in Codex or `telos update-status claude --project-root .` in Claude Code when the CLI is available. If it prints a message, show that update recommendation before continuing.
-2. Ask 1-3 focused questions at a time.
-3. Define ontology first: clarify the key nouns before discussing implementation.
-4. Before drafting the spec, read the project's TDD decision guidance from `AGENTS.md` when it exists. If `AGENTS.md` is absent, decide from the nature of the work: default to `TDD` for bug fixes and behavior-changing code, use `test-after` when tests are still appropriate but writing them first would be inefficient, and use `none` only for work like docs or prompt text where tests are not a meaningful fit.
-5. Decide and record `Test strategy` in the Feature SPEC as exactly one of `TDD`, `test-after`, or `none`. If you choose `none`, include the reason on the same line.
-6. Fill the goal, constraints, test strategy, expected change surface, verification plan, acceptance criteria, out-of-scope items, and open questions.
+2. If the workspace has no `.telos/project.yml`, run `telos init --project-root .`. Show the complete generated configuration and inferred verification command, or `verify: []`, before continuing.
+3. Ask 1-3 focused questions at a time.
+4. Define ontology first: clarify the key nouns before discussing implementation.
+5. Before drafting the spec, read the project's TDD decision guidance from `AGENTS.md` when it exists. If `AGENTS.md` is absent, decide from the nature of the work: default to `TDD` for bug fixes and behavior-changing code, use `test-after` when tests are still appropriate but writing them first would be inefficient, and use `none` only for work like docs or prompt text where tests are not a meaningful fit.
+6. Decide and record `Test strategy` in the Feature SPEC as exactly one of `TDD`, `test-after`, or `none`. If you choose `none`, include the reason on the same line.
+7. Fill the goal, constraints, test strategy, expected change surface, verification plan, acceptance criteria, out-of-scope items, and open questions.
    - Use `.telos/project.yml` `risks[]` for project-specific mechanical risks. When it declares scopes, write `[scopes: name-a, name-b]` on a multi-scope AC and add one `- Evidence [name]: ...` line per scope.
    - Expected change surface names allowed files/areas and whether dependency, API, or schema changes are permitted.
    - Verification plan uses `telos verify --changed --project-root .` for configured checks and records only additional manual checks.
-7. Check the size of the spec before freezing. Split it when any of these is true:
+8. Check the size of the spec before freezing. Split it when any of these is true:
    - more than 6 acceptance criteria
    - the work spans different screens, layers, or subsystems
    - one iteration plausibly cannot be implemented within a single agent response
@@ -30,13 +31,13 @@ Treat the text after `$spec` as the initial task input.
    A Feature SPEC must be small enough that one iteration finishes in one response.
    When splitting, name each slug for the capability it delivers and record the
    intended order in the parent discussion, not inside a single oversized SPEC.
-8. If `Test strategy` is `TDD` or `test-after`, include an acceptance criterion that the related tests pass. If the task is a bug fix, also include an acceptance criterion requiring at least one regression test. If `Test strategy` is `none`, do not add those test criteria automatically.
-9. Challenge one important assumption with a contrary case.
-10. Continue until acceptance criteria are measurable and open questions are resolved.
-11. Create the Feature SPEC in the workspace returned by `telos workspace --project-root .` using `assets/SPEC.template.md`.
-12. If open questions remain, keep asking.
-13. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
-14. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.
+9. If `Test strategy` is `TDD` or `test-after`, include an acceptance criterion that the related tests pass. If the task is a bug fix, also include an acceptance criterion requiring at least one regression test. If `Test strategy` is `none`, do not add those test criteria automatically.
+10. Challenge one important assumption with a contrary case.
+11. Continue until acceptance criteria are measurable and open questions are resolved.
+12. Create the Feature SPEC in the workspace returned by `telos workspace --project-root .` using `assets/SPEC.template.md`.
+13. If open questions remain, keep asking.
+14. When open questions are exhausted, automatically run a low-cost ambiguity check with a subagent.
+15. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.
 
 ## Subagent Handoff
 

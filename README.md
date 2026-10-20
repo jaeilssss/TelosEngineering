@@ -75,6 +75,10 @@ spec → run → eval
 2. `$run` / `/telos:run` manages the implementation → test → evaluation loop.
 3. `$eval` / `/telos:eval` approves, rejects, or marks the result uncertain using evidence from the frozen Spec.
 
+Telos stores every project artifact under `<project-root>/.telos/`: Feature SPECs, `project.yml`, run state, Eval reports, and hook warnings. On the first command in a project, it copies a matching legacy workspace from `~/.telos/projects/` when present, then uses the project directory. The user-level `~/.telos/` directory is otherwise only for installed integrations.
+
+When `$spec` or `/telos:spec` starts in a new project, it runs `telos init` if `project.yml` is missing. Feature SPECs and `project.yml` are committed project files. Only runtime state is added to `.gitignore`: run state, Eval reports, the local active-SPEC pointer, and hook-warning markers.
+
 Start every feature run with an explicit slug. Its local state and Eval reports stay separate from other feature contracts.
 
 ```bash

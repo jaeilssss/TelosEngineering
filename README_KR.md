@@ -75,6 +75,10 @@ spec → run → eval
 2. `$run` / `/telos:run`은 구현 → 테스트 → 평가 Loop를 관리합니다.
 3. `$eval` / `/telos:eval`은 frozen Spec을 기준으로 근거를 확인해 approved, rejected, uncertain을 판정합니다.
 
+Telos의 프로젝트 산출물은 모두 `<프로젝트 루트>/.telos/`에 저장합니다. Feature SPEC, `project.yml`, Run 상태, Eval 리포트, 훅 경고가 여기에 포함됩니다. 프로젝트에서 처음 Telos를 실행할 때 기존 `~/.telos/projects/` 워크스페이스가 있으면 프로젝트 경로로 복사한 뒤, 이후에는 프로젝트 경로만 사용합니다. 사용자 홈의 `~/.telos/`는 그 외에는 설치된 연동 도구만 관리합니다.
+
+새 프로젝트에서 `$spec` 또는 `/telos:spec`을 시작할 때 `project.yml`이 없으면 `telos init`을 실행해 만듭니다. Feature SPEC과 `project.yml`은 Git으로 함께 관리합니다. `.gitignore`에는 Run 상태, Eval 리포트, 로컬 활성 SPEC 포인터, 훅 경고 표식처럼 개발자별 실행 중 상태만 추가합니다.
+
 기능 작업은 항상 명시적인 slug로 시작합니다. 기능별 상태와 Eval 리포트는 서로 분리됩니다.
 
 ```bash
