@@ -68,16 +68,19 @@ If the plugin still shows an earlier version, use `/plugin` to verify that `telo
 ## Workflow
 
 ```text
-spec → run → eval
+discover → spec → run → eval
 ```
 
-1. `$spec` / `/telos:spec` creates a frozen Feature SPEC at `.telos/specs/<slug>/SPEC.md` with measurable acceptance criteria.
-2. `$run` / `/telos:run` manages the implementation → test → evaluation loop.
-3. `$eval` / `/telos:eval` approves, rejects, or marks the result uncertain using evidence from the frozen Spec.
+1. `$discover` / `/telos:discover` turns a planning document into a reviewable technical PRD at `.telos/discoveries/<slug>/PRD.md` without changing code.
+2. `$spec` / `/telos:spec` creates one or more frozen Feature SPECs at `.telos/specs/<slug>/SPEC.md` with measurable acceptance criteria.
+3. `$run` / `/telos:run` manages the implementation → test → evaluation loop.
+4. `$eval` / `/telos:eval` approves, rejects, or marks the result uncertain using evidence from the frozen Spec.
 
 Telos stores every project artifact under `<project-root>/.telos/`: Feature SPECs, `project.yml`, run state, Eval reports, and hook warnings. On the first command in a project, it copies a matching legacy workspace from `~/.telos/projects/` when present, then uses the project directory. The user-level `~/.telos/` directory is otherwise only for installed integrations.
 
 When `$spec` or `/telos:spec` starts in a new project, it runs `telos init` if `project.yml` is missing. Feature SPECs and `project.yml` are committed project files. Only runtime state is added to `.gitignore`: run state, Eval reports, the local active-SPEC pointer, and hook-warning markers.
+
+`$discover` keeps its PRD at `draft` until the user explicitly says `OK`, `approved`, or `승인`. A draft PRD can still seed a SPEC when the user chooses to continue; approval is a review signal, not a hard gate.
 
 Start every feature run with an explicit slug. Its local state and Eval reports stay separate from other feature contracts.
 

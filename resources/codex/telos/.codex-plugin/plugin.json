@@ -1,6 +1,6 @@
 {
   "name": "telos",
-  "version": "2.0.12",
+  "version": "2.1.0",
   "description": "Spec-driven capability orchestration for Codex using SPEC.md as the goal contract.",
   "author": {
     "name": "Telos"
@@ -8,13 +8,14 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Telos",
-    "shortDescription": "Use $spec, $run, $eval, and $review.",
-    "longDescription": "Adds Telos V2 skills: $spec freezes a goal contract, $run manages its bounded loop, $eval verifies evidence, and $review proposes prevention from rejection history.",
+    "shortDescription": "Use $discover, $spec, $run, $eval, and $review.",
+    "longDescription": "Adds Telos skills: $discover creates a reviewable technical PRD, $spec freezes a goal contract, $run manages its bounded loop, $eval verifies evidence, and $review proposes prevention from rejection history.",
     "developerName": "Telos",
     "category": "Productivity",
     "capabilities": ["Write"],
     "defaultPrompt": [
-      "$spec \"만들 기능 설명\"",
+      "$discover \"기획서 또는 기능 설명\"",
+      "$spec \"승인된 PRD를 기준으로 만들 기능 설명\"",
       "$run",
       "$eval",
       "$review"
