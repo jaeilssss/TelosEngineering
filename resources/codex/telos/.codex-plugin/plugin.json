@@ -1,6 +1,6 @@
 {
   "name": "telos",
-  "version": "2.1.0",
+  "version": "2.3.0",
   "description": "Spec-driven capability orchestration for Codex using SPEC.md as the goal contract.",
   "author": {
     "name": "Telos"

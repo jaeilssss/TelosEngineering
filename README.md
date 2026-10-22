@@ -82,6 +82,8 @@ When `$spec` or `/telos:spec` starts in a new project, it runs `telos init` if `
 
 `$discover` keeps its PRD at `draft` until the user explicitly says `OK`, `approved`, or `승인`. A draft PRD can still seed a SPEC when the user chooses to continue; approval is a review signal, not a hard gate.
 
+The PRD compares each feature candidate with existing APIs, UI, code, and tests. Evidence-backed `REUSE` candidates are excluded from new development; `MODIFY` candidates create SPECs only for the missing behavior. For multiple SPECs, Telos groups common blocking decisions, batches per-SPEC blocking questions, and creates ready SPECs without waiting for unrelated blocked work.
+
 Start every feature run with an explicit slug. Its local state and Eval reports stay separate from other feature contracts.
 
 ```bash
