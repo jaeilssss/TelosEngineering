@@ -12,11 +12,15 @@ Source: <planning document path, title, or conversation summary>
 
 <!-- Describe each user or system flow that the planning document requires. -->
 
-## 3. Feature Candidates
+## 3. Feature Candidates and Existing Capability Assessment
 
-| Feature | Planning-document basis | Existing-system relationship | Notes |
-|---|---|---|---|
-| | | NEW / MODIFY / REUSE / UNKNOWN | |
+| Feature candidate | Planning-document basis | Existing capability evidence | Determination | Development scope |
+|---|---|---|---|---|
+| | | API route, file path, UI component, test, or `not found` | NEW / MODIFY / REUSE / UNKNOWN | INCLUDE / EXCLUDE / HOLD |
+
+- `REUSE` with evidence that meets the need → `EXCLUDE` from new development and Feature SPEC candidates.
+- `MODIFY` → `INCLUDE` only the missing behavior in later Feature SPEC candidates.
+- `UNKNOWN` → `HOLD` until the missing evidence is reviewed.
 
 ## 4. Technical Proposal
 
