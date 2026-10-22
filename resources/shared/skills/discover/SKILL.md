@@ -16,7 +16,7 @@ Use this skill before `$spec` when a user wants to turn a planning document, pro
 3. Choose a lowercase kebab-case slug with the user when it materially affects understanding. Otherwise derive one from the planning document.
 4. Ask up to three focused questions only for missing system boundaries, ownership, or business policies that would change the technical proposal. Mark unanswered items as open questions instead of assuming an answer.
 5. Create the draft PRD at the workspace returned by `telos workspace --project-root .`: `path/discoveries/<slug>/PRD.md`. Use `assets/PRD.template.md`.
-6. Fill the PRD with a short overview first, then the user flows, feature candidates, existing-capability assessment, technical proposal, open questions, and risk flags. For every feature candidate, record evidence such as file paths, API routes, UI components, or tests before choosing `NEW`, `MODIFY`, `REUSE`, or `UNKNOWN`.
+6. Fill the PRD with a short overview first, then the user flows, feature candidates, existing-capability assessment, technical proposal, open questions, and risk flags. For every feature candidate, record evidence such as file paths, API routes, UI components, or tests before choosing `NEW`, `MODIFY`, `REUSE`, or `UNKNOWN`. Record the specific missing behavior for each `MODIFY` candidate in the table.
 7. Show a compact review summary: purpose, feature candidates, decisions needed from the user, and high-risk items. Keep supporting detail in the PRD instead of repeating it in chat.
 8. Keep `Status: draft` while the user reviews or requests changes. When the user explicitly says `OK`, `approved`, or `승인`, update only the PRD status to `Status: approved` and report the approved file.
 9. Do not create Feature SPECs automatically. When the user asks to create them, hand off to `$spec` with the PRD path. One PRD may produce one or more Feature SPECs when the feature boundaries, verification plans, or change surfaces differ.
@@ -27,6 +27,7 @@ Use this skill before `$spec` when a user wants to turn a planning document, pro
 - Do not write code or change project configuration.
 - Mark a candidate `REUSE` only when the recorded evidence shows that it already satisfies the planning-document need. A supported `REUSE` candidate is excluded from development and Feature SPEC candidates.
 - Mark a candidate `MODIFY` when an existing capability is incomplete, and include only the missing change in later Feature SPEC candidates. Keep `UNKNOWN` candidates out of development until the user reviews the missing evidence.
+- For each proposed new or modified API, state one clear business purpose and its observable outcome. One purpose may require several internal steps; separate unrelated outcomes instead of combining them in one API.
 - Do not treat approval as permission to deploy, change production data, or begin a Telos Run.
 - Do not require approval to create a draft SPEC later; `$spec` handles that user decision.
 - Keep the default review output short. The PRD is the detailed record.

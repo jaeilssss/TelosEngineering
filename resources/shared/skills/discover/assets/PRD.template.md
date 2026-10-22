@@ -14,17 +14,17 @@ Source: <planning document path, title, or conversation summary>
 
 ## 3. Feature Candidates and Existing Capability Assessment
 
-| Feature candidate | Planning-document basis | Existing capability evidence | Determination | Development scope |
-|---|---|---|---|---|
-| | | API route, file path, UI component, test, or `not found` | NEW / MODIFY / REUSE / UNKNOWN | INCLUDE / EXCLUDE / HOLD |
+| Feature candidate | Planning-document basis | Existing capability evidence | Determination | Development scope | Remaining change |
+|---|---|---|---|---|---|
+| | | API route, file path, UI component, test, or `not found` | NEW / MODIFY / REUSE / UNKNOWN | INCLUDE / EXCLUDE / HOLD | For `MODIFY`, state the specific missing behavior; otherwise `none` or `pending`. |
 
 - `REUSE` with evidence that meets the need → `EXCLUDE` from new development and Feature SPEC candidates.
-- `MODIFY` → `INCLUDE` only the missing behavior in later Feature SPEC candidates.
+- `MODIFY` → `INCLUDE` only the behavior named in `Remaining change` in later Feature SPEC candidates.
 - `UNKNOWN` → `HOLD` until the missing evidence is reviewed.
 
 ## 4. Technical Proposal
 
-<!-- Use bullets or a table. State what changes, why, and how it will be checked. Propose APIs, data ownership, system boundaries, and integrations. Label every assumption. -->
+<!-- Use bullets or a table. State what changes, why, and how it will be checked. For each new or modified API, state one business purpose and its observable outcome. Propose data ownership, system boundaries, and integrations. Label every assumption. -->
 
 ## 5. Open Questions and Assumptions
 
