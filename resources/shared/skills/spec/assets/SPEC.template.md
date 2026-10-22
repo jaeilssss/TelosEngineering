@@ -8,6 +8,7 @@
 Status: `draft` | `frozen`
 Date: <YYYY-MM-DD>
 Spec baseline: <branch and Git revision when frozen, or `not a Git repository`>
+Discovery source: <PRD path and status, or `not used`>
 
 ## 1. Goal
 <!-- One concrete sentence: what, for whom, and why. Avoid vague words like "improve" or "optimize". -->

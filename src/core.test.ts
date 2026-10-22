@@ -527,8 +527,9 @@ test("supports an isolated install, reinstall, and uninstall round trip", () => 
   assert.equal(existsSync(join(marketplace, "plugins", "other", "keep.txt")), true);
   assert.equal(existsSync(join(marketplace, "plugins", "telos", "skills", "run", "SKILL.md")), true);
   assert.equal(existsSync(join(marketplace, "plugins", "telos", "skills", "review", "SKILL.md")), true);
+  assert.equal(existsSync(join(marketplace, "plugins", "telos", "skills", "discover", "assets", "PRD.template.md")), true);
   assert.equal(existsSync(join(marketplace, "plugins", "telos", "agents")), false);
-  for (const skill of ["spec", "run", "eval", "review"]) assert.equal(
+  for (const skill of ["discover", "spec", "run", "eval", "review"]) assert.equal(
     readFileSync(join(marketplace, "plugins", "telos", "skills", skill, "SKILL.md"), "utf8"),
     readFileSync(join(home, "plugins", "telos", "skills", skill, "SKILL.md"), "utf8")
   );
@@ -563,6 +564,7 @@ test("uses project configuration for distinct frontend and JVM-style module path
 
 test("shared skills preserve Run and Eval workflow invariants", () => {
   const shared = join(process.cwd(), "resources", "shared", "skills");
+  const discover = readFileSync(join(shared, "discover", "SKILL.md"), "utf8");
   const spec = readFileSync(join(shared, "spec", "SKILL.md"), "utf8");
   const run = readFileSync(join(shared, "run", "SKILL.md"), "utf8");
   const evalSkill = readFileSync(join(shared, "eval", "SKILL.md"), "utf8");
@@ -572,8 +574,12 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(run, /`rejected` is an iteration result, not a terminal run result/);
   assert.match(run, /End\r?\nthe response only when the final result is `approved`, `uncertain`, `blocked`,\r?\nor the CLI iteration limit has been reached/);
   assert.match(evalSkill, /Run `telos verify --changed --project-root \.` exactly once/); assert.match(evalSkill, /A `no-op` result continues to semantic evaluation/); assert.match(evalSkill, /Ensure `.telos\/project.yml` exists/); assert.match(evalSkill, /another model or profile/);
+  assert.match(discover, /Do not modify implementation code, tests, dependencies, or project configuration/);
+  assert.match(discover, /`path\/discoveries\/<slug>\/PRD\.md`/);
+  assert.match(discover, /`Status: draft`/); assert.match(discover, /`Status: approved`/);
+  assert.match(spec, /A draft PRD does not block SPEC creation/); assert.match(spec, /one or more Feature SPECs/);
   assert.match(spec, /If the workspace has no `.telos\/project.yml`, run `telos init --project-root \.`/);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
-  const promptText = [run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");
+  const promptText = [discover, run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");
   assert.doesNotMatch(promptText, /gradlew|mvnw|npm (?:test|run)|pytest|go test|cargo test|Gradle|Maven/);
 });
