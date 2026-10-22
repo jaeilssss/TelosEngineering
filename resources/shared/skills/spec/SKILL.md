@@ -75,3 +75,6 @@ You are a strict ambiguity evaluator. Read the selected Feature SPEC, score goal
 - The ambiguity gate uses `Ambiguity <= 0.2` as the pass threshold.
 - If the ambiguity check fails or cannot be parsed, return to questioning and do not freeze the SPEC.
 - The ambiguity gate should use the lowest-cost available subagent path in the current Codex session.
+- Write for the developer who will implement and review the SPEC. Put the goal, allowed change surface, and acceptance criteria before explanatory detail.
+- Prefer checklists, tables, and short bullet lists. Give one testable requirement per sentence and use direct language.
+- Each technical detail must answer one of: what changes, why, where it changes, or how it is verified. Do not repeat the PRD, add generic background, or use vague wording such as "improve" without a measurable result.

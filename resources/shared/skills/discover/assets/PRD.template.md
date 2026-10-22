@@ -6,11 +6,11 @@ Source: <planning document path, title, or conversation summary>
 
 ## 1. Overview
 
-<!-- State the user problem, intended outcome, and system boundary in 5-10 lines. -->
+<!-- In 5-10 lines, state the user problem, intended outcome, system boundary, and proposed decision. Use direct sentences. -->
 
 ## 2. User Flows
 
-<!-- Describe each user or system flow that the planning document requires. -->
+<!-- Use a numbered list. For each flow, state the trigger, result, and exceptional case only when it changes the proposal. -->
 
 ## 3. Feature Candidates and Existing Capability Assessment
 
@@ -24,7 +24,7 @@ Source: <planning document path, title, or conversation summary>
 
 ## 4. Technical Proposal
 
-<!-- Propose APIs, data ownership, system boundaries, and integrations. Label every assumption. -->
+<!-- Use bullets or a table. State what changes, why, and how it will be checked. Propose APIs, data ownership, system boundaries, and integrations. Label every assumption. -->
 
 ## 5. Open Questions and Assumptions
 
@@ -37,3 +37,5 @@ Source: <planning document path, title, or conversation summary>
 ## 7. Review Decision
 
 <!-- Record user feedback here. Status changes to approved only after explicit user approval. -->
+
+<!-- Writing rules: put the decision before its evidence; prefer tables and lists to prose; one conclusion per sentence; do not repeat source material or generic background. -->

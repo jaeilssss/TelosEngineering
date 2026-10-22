@@ -579,9 +579,14 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(discover, /`path\/discoveries\/<slug>\/PRD\.md`/);
   assert.match(discover, /`Status: draft`/); assert.match(discover, /`Status: approved`/);
   assert.match(discover, /REUSE.*excluded from development and Feature SPEC candidates/s);
+  assert.match(discover, /Write for a developer reviewing the document/);
+  assert.match(discover, /one conclusion per sentence/);
   assert.match(prdTemplate, /Existing capability evidence/); assert.match(prdTemplate, /REUSE.*EXCLUDE/s);
+  assert.match(prdTemplate, /Writing rules: put the decision before its evidence/);
   assert.match(spec, /A draft PRD does not block SPEC creation/); assert.match(spec, /one or more Feature SPECs/);
   assert.match(spec, /Common blocking decisions/); assert.match(spec, /Per-SPEC blocking questions/); assert.match(spec, /Non-blocking questions/); assert.match(spec, /ready SPECs/); assert.match(spec, /distinct domain responsibilities/);
+  assert.match(spec, /Write for the developer who will implement and review the SPEC/);
+  assert.match(spec, /one testable requirement per sentence/);
   assert.match(spec, /If the workspace has no `.telos\/project.yml`, run `telos init --project-root \.`/);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
   const promptText = [discover, run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");

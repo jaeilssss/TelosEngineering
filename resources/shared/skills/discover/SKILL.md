@@ -30,3 +30,7 @@ Use this skill before `$spec` when a user wants to turn a planning document, pro
 - Do not treat approval as permission to deploy, change production data, or begin a Telos Run.
 - Do not require approval to create a draft SPEC later; `$spec` handles that user decision.
 - Keep the default review output short. The PRD is the detailed record.
+- Write for a developer reviewing the document. Put the purpose, proposed decision, and development scope before supporting detail.
+- Prefer tables and bullet lists. Give one conclusion per sentence and use short, direct sentences.
+- State what changes, why it changes, and how it will be checked. Use file paths and API names only as evidence; do not explain their implementation unless it changes a decision.
+- Do not repeat the planning document, add generic background, or use vague wording such as "improve" without a measurable meaning. Define an unfamiliar term once where it first appears.
