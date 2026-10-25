@@ -84,6 +84,8 @@ When `$spec` or `/telos:spec` starts in a new project, it runs `telos init` if `
 
 The PRD compares each feature candidate with existing APIs, UI, code, and tests. Evidence-backed `REUSE` candidates are excluded from new development; `MODIFY` candidates create SPECs only for the missing behavior. For multiple SPECs, Telos groups common blocking decisions, batches per-SPEC blocking questions, and creates ready SPECs without waiting for unrelated blocked work.
 
+SPECs created from a PRD are linked in its `Related SPECs` table. `$spec` checks that in-scope development candidates are represented by SPEC responsibilities and acceptance criteria, distinguishes intentional deferrals from gaps, and detects duplicate implementation ownership. It resolves duplicates from an existing decision or asks the developer to choose an owner, then checks again.
+
 Start every feature run with an explicit slug. Its local state and Eval reports stay separate from other feature contracts.
 
 ```bash

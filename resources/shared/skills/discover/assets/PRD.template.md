@@ -38,4 +38,11 @@ Source: <planning document path, title, or conversation summary>
 
 <!-- Record user feedback here. Status changes to approved only after explicit user approval. -->
 
+## 8. Related SPECs
+
+<!-- $spec fills this table after saving actual SPEC files, including drafts. Use feature names as link labels and paths relative to this PRD. Keep it empty until SPECs exist. Link updates preserve the PRD approval status. -->
+
+| SPEC | Responsibility |
+|---|---|
+
 <!-- Writing rules: put the decision before its evidence; prefer tables and lists to prose; one conclusion per sentence; do not repeat source material or generic background. -->

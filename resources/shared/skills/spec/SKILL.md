@@ -42,9 +42,28 @@ Treat the text after `$spec` as the initial task input.
 11. If `Test strategy` is `TDD` or `test-after`, include an acceptance criterion that the related tests pass. If the task is a bug fix, also include an acceptance criterion requiring at least one regression test. If `Test strategy` is `none`, do not add those test criteria automatically.
 12. Challenge one important assumption with a contrary case.
 13. Create draft Feature SPECs for ready candidates in the workspace returned by `telos workspace --project-root .` using `assets/SPEC.template.md`. A draft may retain its own blocking Open Questions; create drafts for ready SPECs without waiting for unrelated blocked SPECs.
+    After saving each SPEC, follow **PRD Traceability** and **PRD Coverage Review** below when it has a source PRD.
 14. Resolve each SPEC's blocking questions and make its acceptance criteria measurable before freezing that SPEC.
 15. When the selected SPEC's Open Questions are empty, automatically run a low-cost ambiguity check with a subagent.
 16. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.
+
+## PRD Traceability
+
+When a SPEC is created from a local PRD, add or update a row in that PRD's `Related SPECs` table after saving the SPEC, including drafts. Create the section if it is absent. Each row contains a Markdown link labeled with the SPEC's feature name and a short description of its responsibility. Compute the link relative to the PRD's directory; for `.telos/discoveries/<slug>/PRD.md`, a typical target is `../../specs/<spec-slug>/SPEC.md`.
+
+Match existing rows by their resolved target path and update them instead of adding duplicates. Preserve other rows, PRD requirements, and approval status. Register only files actually created, not planned candidates. If no source PRD was used, skip this step without creating a PRD.
+
+Before reporting completion, confirm that each SPEC created from the PRD has exactly one matching row, its link resolves to the saved file, and its `Discovery source` points back to that PRD. If the source is unavailable or cannot be edited, report the saved SPEC paths and the incomplete backlink update; do not claim traceability is complete.
+
+## PRD Coverage Review
+
+When a source PRD exists, review its `NEW` and `MODIFY` candidates with development scope `INCLUDE` against the linked SPECs. Before reviewing, identify which candidates the current request intends to create; do not call an explicitly unrequested candidate missing.
+
+For each in-scope candidate, classify it as `covered`, `intentionally deferred`, or `needs review`. `MODIFY` is covered only when a SPEC includes the behavior in `Remaining change`. A candidate is intentionally deferred only when the PRD's Review Decision or the user's answer explicitly says so. A candidate with no matching SPEC, or only a link without matching responsibility or acceptance criteria, needs review.
+
+Also compare linked SPEC responsibilities, acceptance criteria, and expected change surfaces for duplicate implementation ownership. A SPEC that calls or depends on another SPEC's capability is a valid dependency, not a duplicate. Report the coverage and duplicate findings in a compact table before freezing affected SPECs.
+
+When the PRD or an existing SPEC already assigns ownership, update the draft SPECs to keep the implementation in that owner and replace the other duplicate with the dependency. Recheck the affected candidates afterwards. When ownership requires a new product or technical decision, ask the developer one focused question with the recommended owner and reason. Keep only affected SPECs as drafts until the answer resolves the finding; unrelated ready SPECs may continue to freeze. Never create or remove a SPEC solely to make the table look complete.
 
 ## Subagent Handoff
 

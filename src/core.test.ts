@@ -587,6 +587,8 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(spec, /Common blocking decisions/); assert.match(spec, /Per-SPEC blocking questions/); assert.match(spec, /Non-blocking questions/); assert.match(spec, /ready SPECs/); assert.match(spec, /distinct domain responsibilities/);
   assert.match(spec, /Write for the developer who will implement and review the SPEC/);
   assert.match(spec, /one testable requirement per sentence/);
+  assert.match(spec, /PRD Coverage Review/); assert.match(spec, /intentionally deferred/); assert.match(spec, /duplicate implementation ownership/);
+  assert.match(spec, /not call an explicitly unrequested candidate missing/);
   assert.match(spec, /If the workspace has no `.telos\/project.yml`, run `telos init --project-root \.`/);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
   const promptText = [discover, run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");
