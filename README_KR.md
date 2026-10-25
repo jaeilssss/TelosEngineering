@@ -84,6 +84,18 @@ Telos의 프로젝트 산출물은 모두 `<프로젝트 루트>/.telos/`에 저
 
 PRD는 기능 후보를 기존 API, UI, 코드, 테스트와 대조합니다. 근거가 확인된 `REUSE` 후보는 새 개발에서 제외하고, `MODIFY` 후보는 부족한 동작만 SPEC으로 만듭니다. 여러 SPEC이 필요하면 공통 차단 질문은 묶어 확인하고, SPEC별 차단 질문은 표로 한 번에 답할 수 있게 하며, 답이 준비된 SPEC부터 만듭니다.
 
+PRD에서 만든 SPEC은 PRD의 `Related SPECs` 표에 연결됩니다. `$spec`은 이번 요청에 포함된 개발 후보가 SPEC의 책임과 인수 기준으로 반영됐는지 확인하고, 의도적 보류와 누락 후보를 구분합니다. 여러 SPEC이 같은 구현 책임을 가지면 기존 결정에 따라 정리하거나 개발자에게 담당을 확인한 뒤 다시 검사합니다.
+
+같은 기능의 정책이나 범위가 바뀌면 `$discover`에 기존 PRD 경로를 주어 개정할 수 있습니다. 아직 시작하지 않은 frozen SPEC은 같은 문서를 다시 초안으로 돌려 수정합니다. 완료된 SPEC은 당시의 계약과 근거를 보존하고, 변경된 동작을 위한 새 SPEC으로 이어갑니다.
+
+SPEC별 결정은 해당 SPEC에, 여러 SPEC에 적용되는 결정은 PRD의 `Shared Decisions`에 남깁니다. PRD의 연결된 SPEC 진행 현황과 다음 행동은 다음 명령으로 확인합니다.
+
+```bash
+telos prd status --prd .telos/discoveries/order-flow/PRD.md --project-root .
+```
+
+특정 SPEC만 확인하려면 `--spec <slug>`를 함께 사용합니다.
+
 기능 작업은 항상 명시적인 slug로 시작합니다. 기능별 상태와 Eval 리포트는 서로 분리됩니다.
 
 ```bash
