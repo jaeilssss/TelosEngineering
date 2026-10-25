@@ -8,6 +8,7 @@ import { extendRun, loadRunState, recordResult, retryRun, RunStateError, startRu
 import { checkEvidence, parseProjectConfig, runConfiguredCommand, VerificationError, verifyChanged } from "./verification.js";
 import { doctorProject, initProject } from "./project-setup.js";
 import { historySince } from "./history.js";
+import { prdStatus } from "./prd-status.js";
 import { install, uninstall } from "./installers.js";
 import { legacyWorkspacePath, workspaceFor } from "./storage.js";
 
@@ -70,6 +71,17 @@ test("copies a legacy global workspace into the project on first use", () => {
   assert.equal(workspace.path, join(root, ".telos"));
   assert.equal(readFileSync(join(workspace.path, "specs", "legacy-feature", "SPEC.md"), "utf8"), "# Legacy SPEC\n");
   assert.equal(existsSync(legacy), true);
+});
+
+test("reports PRD-linked SPEC progress and next actions", () => {
+  const root = repository({ "README.md": "initial" });
+  const prd = join(root, ".telos", "discoveries", "orders", "PRD.md");
+  mkdirSync(join(prd, ".."), { recursive: true });
+  featureSpec(root, "draft-order", "Status: draft\n"); featureSpec(root, "frozen-order", "Status: frozen\n"); featureSpec(root, "done-order", "Status: frozen\n");
+  mkdirSync(join(root, ".telos", "runs"), { recursive: true });
+  writeFileSync(join(root, ".telos", "runs", "done-order.json"), JSON.stringify({ status: "complete" }));
+  writeFileSync(prd, "# PRD\n\n## 9. Related SPECs\n\n| SPEC | Responsibility |\n|---|---|\n| [Draft](../../specs/draft-order/SPEC.md) | Draft work |\n| [Frozen](../../specs/frozen-order/SPEC.md) | Frozen work |\n| [Done](../../specs/done-order/SPEC.md) | Done work |\n| [Missing](../../specs/missing-order/SPEC.md) | Missing work |\n");
+  assert.deepEqual(prdStatus(root, ".telos/discoveries/orders/PRD.md").specs.map((spec) => [spec.status, spec.nextAction]), [["draft", "resolve open questions"], ["frozen", "start run"], ["complete", "none"], ["missing", "fix link or create SPEC"]]);
 });
 
 test("never overwrites an active running slug", () => {

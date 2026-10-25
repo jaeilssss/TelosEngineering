@@ -88,6 +88,12 @@ PRD에서 만든 SPEC은 PRD의 `Related SPECs` 표에 연결됩니다. `$spec`�
 
 같은 기능의 정책이나 범위가 바뀌면 `$discover`에 기존 PRD 경로를 주어 개정할 수 있습니다. 아직 시작하지 않은 frozen SPEC은 같은 문서를 다시 초안으로 돌려 수정합니다. 완료된 SPEC은 당시의 계약과 근거를 보존하고, 변경된 동작을 위한 새 SPEC으로 이어갑니다.
 
+SPEC별 결정은 해당 SPEC에, 여러 SPEC에 적용되는 결정은 PRD의 `Shared Decisions`에 남깁니다. PRD의 연결된 SPEC 진행 현황과 다음 행동은 다음 명령으로 확인합니다.
+
+```bash
+telos prd status --prd .telos/discoveries/order-flow/PRD.md --project-root .
+```
+
 기능 작업은 항상 명시적인 slug로 시작합니다. 기능별 상태와 Eval 리포트는 서로 분리됩니다.
 
 ```bash

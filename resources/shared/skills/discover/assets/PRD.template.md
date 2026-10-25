@@ -35,11 +35,18 @@ Source: <planning document path, title, or conversation summary>
 
 <!-- Include authorization, personal data, money, schema migration, concurrency, idempotency, external calls, retries, and asynchronous work when relevant. -->
 
-## 7. Review Decision
+## 7. Shared Decisions
+
+<!-- Record only decisions that apply across multiple feature candidates or SPECs. Keep feature-specific decisions in the relevant SPEC. -->
+
+| Decision | Reason | Applies to |
+|---|---|---|
+
+## 8. Review Decision
 
 <!-- Record user feedback here. Status changes to approved only after explicit user approval. -->
 
-## 8. Revision History
+## 9. Revision History
 
 <!-- Add a row whenever this PRD is revised. Preserve earlier rows. -->
 
@@ -47,7 +54,7 @@ Source: <planning document path, title, or conversation summary>
 |---|---|---|---|
 | 1 | <YYYY-MM-DD> | Initial draft | - |
 
-## 9. Related SPECs
+## 10. Related SPECs
 
 <!-- $spec fills this table after saving actual SPEC files, including drafts. Use feature names as link labels and paths relative to this PRD. Keep it empty until SPECs exist. Link updates preserve the PRD approval status. -->
 

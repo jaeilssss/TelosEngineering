@@ -48,7 +48,13 @@ Test strategy:
 ## 8. Out of Scope
 -
 
-## 9. Open Questions
+## 9. Decisions
+<!-- Keep only final decisions whose rationale helps implementation or review. Put the outcome itself in the relevant Goal, Constraint, AC, or Out of Scope section. -->
+
+| Decision | Reason |
+|---|---|
+
+## 10. Open Questions
 <!-- Must be empty before frozen. -->
 -
 

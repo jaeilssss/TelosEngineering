@@ -31,6 +31,8 @@ Treat the text after `$spec` as the initial task input.
    - Expected change surface names allowed files/areas and whether dependency, API, or schema changes are permitted.
    - Verification plan uses `telos verify --changed --project-root .` for configured checks and records only additional manual checks.
    - For each new or modified API, state its one business purpose and observable outcome. Several internal steps may serve that purpose; unrelated outcomes need separate API contracts.
+   - Write each resolved question's final answer into the section it changes. When the rationale remains useful for implementation or review, also record it in `Decisions`; do not copy the full interview transcript.
+   - Promote a decision to the source PRD's `Shared Decisions` only when it applies to multiple Feature SPECs or candidates. Preserve the PRD approval status when recording that linkable decision.
 10. Check the size of the spec before freezing. Split it when any of these is true:
    - more than 6 acceptance criteria
    - the work has independently deliverable business purposes or domain responsibilities with different verification plans or change surfaces
@@ -43,6 +45,7 @@ Treat the text after `$spec` as the initial task input.
 12. Challenge one important assumption with a contrary case.
 13. Create draft Feature SPECs for ready candidates in the workspace returned by `telos workspace --project-root .` using `assets/SPEC.template.md`. A draft may retain its own blocking Open Questions; create drafts for ready SPECs without waiting for unrelated blocked SPECs.
     After saving each SPEC, follow **PRD Traceability** and **PRD Coverage Review** below when it has a source PRD.
+    Run `telos prd status --prd <source PRD path> --project-root .` and show its compact progress table.
 14. Resolve each SPEC's blocking questions and make its acceptance criteria measurable before freezing that SPEC.
 15. When the selected SPEC's Open Questions are empty, automatically run a low-cost ambiguity check with a subagent.
 16. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.

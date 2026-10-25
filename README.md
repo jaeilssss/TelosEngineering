@@ -88,6 +88,12 @@ SPECs created from a PRD are linked in its `Related SPECs` table. `$spec` checks
 
 When a policy or scope changes within the same initiative, `$discover` can revise the existing PRD. A frozen SPEC with no Run can return to draft for revision; a completed SPEC remains as the historical contract and a new SPEC carries the changed behavior.
 
+Keep feature-specific decisions in their SPEC and decisions that apply to multiple SPECs in the PRD's `Shared Decisions`. View the linked SPEC progress and next action with:
+
+```bash
+telos prd status --prd .telos/discoveries/order-flow/PRD.md --project-root .
+```
+
 Start every feature run with an explicit slug. Its local state and Eval reports stay separate from other feature contracts.
 
 ```bash

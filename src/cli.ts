@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { install, uninstall } from "./installers.js";
 import { historySince } from "./history.js";
+import { prdStatus } from "./prd-status.js";
 import { doctorProject, initProject } from "./project-setup.js";
 import { extendRun, loadRunState, recordResult, retryRun, RunStateError, startRun, storeVerificationSnapshot, unblockRun } from "./run-state.js";
 import { updateStatus } from "./update-status.js";
@@ -21,6 +22,7 @@ try {
   }
   else if (args[0] === "doctor") output(doctorProject(root));
   else if (args[0] === "history" && take("--since")) output(historySince(root, take("--since")!));
+  else if (args[0] === "prd" && args[1] === "status" && take("--prd")) output(prdStatus(root, take("--prd")!));
   else if (args[0] === "verify" && args[1] === "--changed") {
     try { const result = verifyChanged(root); storeVerificationSnapshot(root, result); output(result); }
     catch (error) {
@@ -36,5 +38,5 @@ try {
   else if (args[0] === "run" && args[1] === "extend" && take("--spec") && take("--by")) output(extendRun(root, take("--spec")!, Number(take("--by"))));
   else if (args[0] === "run" && args[1] === "record" && take("--spec") && take("--status") && take("--summary")) output(recordResult(root, take("--spec")!, take("--status") as any, take("--summary")!));
   else if (args[0] === "run" && args[1] === "unblock" && take("--spec") && take("--summary")) output(unblockRun(root, take("--spec")!, take("--summary")!));
-  else throw new Error("usage: telos <install|update|uninstall|update-status|workspace|init|doctor|history|verify|run> ...");
+  else throw new Error("usage: telos <install|update|uninstall|update-status|workspace|init|doctor|history|prd|verify|run> ...");
 } catch (error) { console.error(`telos: ${(error as Error).message}`); process.exitCode = error instanceof RunStateError ? 1 : 2; }

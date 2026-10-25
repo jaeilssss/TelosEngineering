@@ -28,6 +28,7 @@ Use this skill before `$spec` when a user wants to turn a planning document, pro
 - Mark a candidate `REUSE` only when the recorded evidence shows that it already satisfies the planning-document need. A supported `REUSE` candidate is excluded from development and Feature SPEC candidates.
 - Mark a candidate `MODIFY` when an existing capability is incomplete, and include only the missing change in later Feature SPEC candidates. Keep `UNKNOWN` candidates out of development until the user reviews the missing evidence.
 - For each proposed new or modified API, state one clear business purpose and its observable outcome. One purpose may require several internal steps; separate unrelated outcomes instead of combining them in one API.
+- Record a decision in the PRD's `Shared Decisions` only when it applies to multiple Feature SPECs or candidates. Keep a decision that affects one Feature SPEC in that SPEC.
 - Do not treat approval as permission to deploy, change production data, or begin a Telos Run.
 - Do not require approval to create a draft SPEC later; `$spec` handles that user decision.
 - Create a new PRD when the change has a different user problem, domain responsibility, or independently deliverable outcome. Do not create a new PRD for a policy, condition, or scope revision of the same initiative.
