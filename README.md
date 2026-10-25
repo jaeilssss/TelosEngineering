@@ -94,6 +94,8 @@ Keep feature-specific decisions in their SPEC and decisions that apply to multip
 telos prd status --prd .telos/discoveries/order-flow/PRD.md --project-root .
 ```
 
+Use `--spec <slug>` to inspect only one linked SPEC.
+
 Start every feature run with an explicit slug. Its local state and Eval reports stay separate from other feature contracts.
 
 ```bash

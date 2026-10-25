@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { extendRun, loadRunState, recordResult, retryRun, RunStateError, startRun, storeVerificationSnapshot, unblockRun } from "./run-state.js";
+import { extendRun, loadRunState, recordResult, retryRun, RunStateError, startRun, storeVerificationSnapshot, supersedeRun, unblockRun } from "./run-state.js";
 import { checkEvidence, parseProjectConfig, runConfiguredCommand, VerificationError, verifyChanged } from "./verification.js";
 import { doctorProject, initProject } from "./project-setup.js";
 import { historySince } from "./history.js";
@@ -82,6 +82,19 @@ test("reports PRD-linked SPEC progress and next actions", () => {
   writeFileSync(join(root, ".telos", "runs", "done-order.json"), JSON.stringify({ status: "complete" }));
   writeFileSync(prd, "# PRD\n\n## 9. Related SPECs\n\n| SPEC | Responsibility |\n|---|---|\n| [Draft](../../specs/draft-order/SPEC.md) | Draft work |\n| [Frozen](../../specs/frozen-order/SPEC.md) | Frozen work |\n| [Done](../../specs/done-order/SPEC.md) | Done work |\n| [Missing](../../specs/missing-order/SPEC.md) | Missing work |\n");
   assert.deepEqual(prdStatus(root, ".telos/discoveries/orders/PRD.md").specs.map((spec) => [spec.status, spec.nextAction]), [["draft", "resolve open questions"], ["frozen", "start run"], ["complete", "none"], ["missing", "fix link or create SPEC"]]);
+  writeFileSync(join(root, ".telos", "runs", "frozen-order.json"), JSON.stringify({ status: "rejected", iteration: 5, maxIterations: 5 }));
+  assert.deepEqual(prdStatus(root, ".telos/discoveries/orders/PRD.md", ["frozen-order"]).specs.map((spec) => [spec.status, spec.nextAction]), [["rejected", "request direction and extend run"]]);
+});
+
+test("supersedes a non-complete Run before revising its SPEC", () => {
+  const root = repository({ "README.md": "initial" }); featureSpec(root, "revised-feature", "Status: frozen\n"); startRun(root, "revised-feature", [], 2);
+  const state = supersedeRun(root, "revised-feature", "PRD revision requires a new contract");
+  assert.equal(state.history.at(-1)?.status, "superseded");
+  assert.equal(existsSync(join(root, ".telos", "runs", "revised-feature.json")), false);
+  assert.equal(existsSync(join(root, ".telos", "runs", "archive")), true);
+  assert.equal(existsSync(join(root, ".telos", "active")), false);
+  writeFileSync(join(root, ".telos", "specs", "revised-feature", "SPEC.md"), "Status: frozen\nRevision: 2\n");
+  assert.equal(startRun(root, "revised-feature", [], 2).iteration, 1);
 });
 
 test("never overwrites an active running slug", () => {

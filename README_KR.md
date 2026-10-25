@@ -94,6 +94,8 @@ SPEC별 결정은 해당 SPEC에, 여러 SPEC에 적용되는 결정은 PRD의 `
 telos prd status --prd .telos/discoveries/order-flow/PRD.md --project-root .
 ```
 
+특정 SPEC만 확인하려면 `--spec <slug>`를 함께 사용합니다.
+
 기능 작업은 항상 명시적인 slug로 시작합니다. 기능별 상태와 Eval 리포트는 서로 분리됩니다.
 
 ```bash

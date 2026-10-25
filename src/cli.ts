@@ -3,7 +3,7 @@ import { install, uninstall } from "./installers.js";
 import { historySince } from "./history.js";
 import { prdStatus } from "./prd-status.js";
 import { doctorProject, initProject } from "./project-setup.js";
-import { extendRun, loadRunState, recordResult, retryRun, RunStateError, startRun, storeVerificationSnapshot, unblockRun } from "./run-state.js";
+import { extendRun, loadRunState, recordResult, retryRun, RunStateError, startRun, storeVerificationSnapshot, supersedeRun, unblockRun } from "./run-state.js";
 import { updateStatus } from "./update-status.js";
 import { VERSION } from "./version.js";
 import { checkEvidence, VerificationError, verifyChanged } from "./verification.js";
@@ -22,7 +22,7 @@ try {
   }
   else if (args[0] === "doctor") output(doctorProject(root));
   else if (args[0] === "history" && take("--since")) output(historySince(root, take("--since")!));
-  else if (args[0] === "prd" && args[1] === "status" && take("--prd")) output(prdStatus(root, take("--prd")!));
+  else if (args[0] === "prd" && args[1] === "status" && take("--prd")) output(prdStatus(root, take("--prd")!, all("--spec")));
   else if (args[0] === "verify" && args[1] === "--changed") {
     try { const result = verifyChanged(root); storeVerificationSnapshot(root, result); output(result); }
     catch (error) {
@@ -34,6 +34,7 @@ try {
   else if (args[0] === "run" && !take("--spec")) throw new RunStateError("--spec <slug> is required for telos run");
   else if (args[0] === "run" && args[1] === "status" && take("--spec")) output(loadRunState(root, take("--spec")!) ?? { status: "idle" });
   else if (args[0] === "run" && args[1] === "start" && take("--spec")) output(startRun(root, take("--spec")!, all("--capability"), Number(take("--max-iterations") ?? 5)));
+  else if (args[0] === "run" && args[1] === "supersede" && take("--spec") && take("--summary")) output(supersedeRun(root, take("--spec")!, take("--summary")!));
   else if (args[0] === "run" && args[1] === "retry" && take("--spec")) output(retryRun(root, take("--spec")!, all("--capability")));
   else if (args[0] === "run" && args[1] === "extend" && take("--spec") && take("--by")) output(extendRun(root, take("--spec")!, Number(take("--by"))));
   else if (args[0] === "run" && args[1] === "record" && take("--spec") && take("--status") && take("--summary")) output(recordResult(root, take("--spec")!, take("--status") as any, take("--summary")!));

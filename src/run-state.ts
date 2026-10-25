@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { VerificationAttempt, worktreeFingerprint, worktreePathDigests } from "./verification.js";
 import { workspaceFor } from "./storage.js";
@@ -85,6 +85,18 @@ export function startRun(root: string, slug: string, capabilities: string[], max
   };
   save(root, slug, state);
   writeFileSync(activePathFor(root), `${slug}\n`);
+  return state;
+}
+
+export function supersedeRun(root: string, slug: string, summary: string): RunState {
+  const state = loadRunState(root, slug);
+  if (!state || state.status === "complete") throw new RunStateError("supersede requires a non-complete Telos run");
+  const timestamp = now();
+  state.history.push({ iteration: state.iteration, status: "superseded", summary, at: timestamp });
+  save(root, slug, state);
+  archivePreviousRun(root, slug, timestamp);
+  const activePath = activePathFor(root);
+  if (existsSync(activePath) && readFileSync(activePath, "utf8").trim() === slug) unlinkSync(activePath);
   return state;
 }
 
