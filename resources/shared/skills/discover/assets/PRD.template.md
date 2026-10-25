@@ -1,6 +1,7 @@
 # PRD: <feature or initiative name>
 
 Status: draft
+Revision: 1
 Date: <YYYY-MM-DD>
 Source: <planning document path, title, or conversation summary>
 
@@ -38,7 +39,15 @@ Source: <planning document path, title, or conversation summary>
 
 <!-- Record user feedback here. Status changes to approved only after explicit user approval. -->
 
-## 8. Related SPECs
+## 8. Revision History
+
+<!-- Add a row whenever this PRD is revised. Preserve earlier rows. -->
+
+| Revision | Date | Requirement change | Affected SPEC candidates |
+|---|---|---|---|
+| 1 | <YYYY-MM-DD> | Initial draft | - |
+
+## 9. Related SPECs
 
 <!-- $spec fills this table after saving actual SPEC files, including drafts. Use feature names as link labels and paths relative to this PRD. Keep it empty until SPECs exist. Link updates preserve the PRD approval status. -->
 

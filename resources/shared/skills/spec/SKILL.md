@@ -15,7 +15,7 @@ Treat the text after `$spec` as the initial task input.
 
 1. Before the main workflow, run `telos update-status codex --project-root .` in Codex or `telos update-status claude --project-root .` in Claude Code when the CLI is available. If it prints a message, show that update recommendation before continuing.
 2. If the workspace has no `.telos/project.yml`, run `telos init --project-root .`. Show the complete generated configuration and inferred verification command, or `verify: []`, before continuing.
-3. If the user references a Discovery PRD, read its `PRD.md` before asking questions. A draft PRD does not block SPEC creation: tell the user its status and ask whether to continue from the draft. Record the PRD path and status in the resulting SPEC. Treat candidates marked `REUSE` with development scope `EXCLUDE` as already satisfied; do not create Feature SPECs for them. For `MODIFY`, create SPECs only for the behavior recorded in `Remaining change`.
+3. If the user references a Discovery PRD, read its `PRD.md` before asking questions. A draft PRD does not block SPEC creation: tell the user its status and ask whether to continue from the draft. Record the PRD path and status in the resulting SPEC. Treat candidates marked `REUSE` with development scope `EXCLUDE` as already satisfied; do not create Feature SPECs for them. For `MODIFY`, create SPECs only for the behavior recorded in `Remaining change`. When the PRD revision changes an existing candidate, follow **SPEC Change Handling** below.
 4. When a PRD has multiple development candidates, first show a compact SPEC map with each candidate's responsibility, dependency, question category, and readiness. One PRD may produce one or more Feature SPECs; split distinct domain responsibilities when they can be delivered and verified independently. A feature crossing UI and API layers alone does not require separate SPECs.
 5. Ask 1-3 focused question groups at a time. For one SPEC, ask only its unresolved questions. For multiple SPECs, classify questions as:
    - **Common blocking decisions**: one answer affects multiple SPECs. Ask these together before creating affected frozen SPECs.
@@ -54,6 +54,17 @@ When a SPEC is created from a local PRD, add or update a row in that PRD's `Rela
 Match existing rows by their resolved target path and update them instead of adding duplicates. Preserve other rows, PRD requirements, and approval status. Register only files actually created, not planned candidates. If no source PRD was used, skip this step without creating a PRD.
 
 Before reporting completion, confirm that each SPEC created from the PRD has exactly one matching row, its link resolves to the saved file, and its `Discovery source` points back to that PRD. If the source is unavailable or cannot be edited, report the saved SPEC paths and the incomplete backlink update; do not claim traceability is complete.
+
+## SPEC Change Handling
+
+When a revised PRD changes a linked candidate, inspect the linked SPEC and its `telos run status` before editing it.
+
+- If the linked SPEC is `draft`, update that same SPEC.
+- If it is `frozen` and has no Run state, change it back to `draft`, update it, then complete the normal ambiguity check before freezing it again.
+- If its Run status is `complete`, preserve the completed SPEC and create a new SPEC for the changed behavior. Record the completed SPEC path in the new SPEC's `Changes:` field and link both files from the revised PRD.
+- If it has a non-complete Run state, preserve the existing Run history. Explain the revision impact and ask for direction before changing the SPEC or restarting its Run. A currently `running` Run must not have its SPEC changed in place because the stored SPEC hash would no longer match.
+
+Do not treat a PRD revision as permission to modify every linked SPEC. Change only the SPECs affected by the revised candidate, and report unaffected, revised, and newly created SPECs separately.
 
 ## PRD Coverage Review
 

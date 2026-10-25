@@ -581,14 +581,17 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(discover, /REUSE.*excluded from development and Feature SPEC candidates/s);
   assert.match(discover, /Write for a developer reviewing the document/);
   assert.match(discover, /one conclusion per sentence/);
+  assert.match(discover, /increment `Revision`/); assert.match(discover, /different user problem, domain responsibility, or independently deliverable outcome/);
   assert.match(prdTemplate, /Existing capability evidence/); assert.match(prdTemplate, /REUSE.*EXCLUDE/s);
   assert.match(prdTemplate, /Writing rules: put the decision before its evidence/);
+  assert.match(prdTemplate, /Revision History/);
   assert.match(spec, /A draft PRD does not block SPEC creation/); assert.match(spec, /one or more Feature SPECs/);
   assert.match(spec, /Common blocking decisions/); assert.match(spec, /Per-SPEC blocking questions/); assert.match(spec, /Non-blocking questions/); assert.match(spec, /ready SPECs/); assert.match(spec, /distinct domain responsibilities/);
   assert.match(spec, /Write for the developer who will implement and review the SPEC/);
   assert.match(spec, /one testable requirement per sentence/);
   assert.match(spec, /PRD Coverage Review/); assert.match(spec, /intentionally deferred/); assert.match(spec, /duplicate implementation ownership/);
   assert.match(spec, /not call an explicitly unrequested candidate missing/);
+  assert.match(spec, /SPEC Change Handling/); assert.match(spec, /Run status is `complete`/); assert.match(spec, /stored SPEC hash would no longer match/);
   assert.match(spec, /If the workspace has no `.telos\/project.yml`, run `telos init --project-root \.`/);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
   const promptText = [discover, run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");

@@ -86,6 +86,8 @@ The PRD compares each feature candidate with existing APIs, UI, code, and tests.
 
 SPECs created from a PRD are linked in its `Related SPECs` table. `$spec` checks that in-scope development candidates are represented by SPEC responsibilities and acceptance criteria, distinguishes intentional deferrals from gaps, and detects duplicate implementation ownership. It resolves duplicates from an existing decision or asks the developer to choose an owner, then checks again.
 
+When a policy or scope changes within the same initiative, `$discover` can revise the existing PRD. A frozen SPEC with no Run can return to draft for revision; a completed SPEC remains as the historical contract and a new SPEC carries the changed behavior.
+
 Start every feature run with an explicit slug. Its local state and Eval reports stay separate from other feature contracts.
 
 ```bash

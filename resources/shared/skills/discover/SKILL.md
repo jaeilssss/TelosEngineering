@@ -13,9 +13,9 @@ Use this skill before `$spec` when a user wants to turn a planning document, pro
 
 1. Run `telos update-status codex --project-root .` in Codex or `telos update-status claude --project-root .` in Claude Code when the CLI is available. If it prints a message, show that update recommendation before continuing.
 2. Read the supplied planning document or extracted text. Inspect relevant existing code, APIs, UI, schemas, and documentation when they help determine whether a requested capability already exists.
-3. Choose a lowercase kebab-case slug with the user when it materially affects understanding. Otherwise derive one from the planning document.
+3. If the user supplies an existing local PRD path, revise that PRD instead of creating a new one when the user problem, domain responsibility, and intended outcome remain the same. Otherwise choose a lowercase kebab-case slug with the user when it materially affects understanding, or derive one from the planning document.
 4. Ask up to three focused questions only for missing system boundaries, ownership, or business policies that would change the technical proposal. Mark unanswered items as open questions instead of assuming an answer.
-5. Create the draft PRD at the workspace returned by `telos workspace --project-root .`: `path/discoveries/<slug>/PRD.md`. Use `assets/PRD.template.md`.
+5. For a new PRD, create the draft at the workspace returned by `telos workspace --project-root .`: `path/discoveries/<slug>/PRD.md`. Use `assets/PRD.template.md`. For a revision, retain the existing path, increment `Revision`, set `Status: draft`, and add a concise entry to `Revision History` describing the requirement change and affected SPEC candidates.
 6. Fill the PRD with a short overview first, then the user flows, feature candidates, existing-capability assessment, technical proposal, open questions, and risk flags. For every feature candidate, record evidence such as file paths, API routes, UI components, or tests before choosing `NEW`, `MODIFY`, `REUSE`, or `UNKNOWN`. Record the specific missing behavior for each `MODIFY` candidate in the table.
 7. Show a compact review summary: purpose, feature candidates, decisions needed from the user, and high-risk items. Keep supporting detail in the PRD instead of repeating it in chat.
 8. Keep `Status: draft` while the user reviews or requests changes. When the user explicitly says `OK`, `approved`, or `승인`, update only the PRD status to `Status: approved` and report the approved file.
@@ -30,6 +30,7 @@ Use this skill before `$spec` when a user wants to turn a planning document, pro
 - For each proposed new or modified API, state one clear business purpose and its observable outcome. One purpose may require several internal steps; separate unrelated outcomes instead of combining them in one API.
 - Do not treat approval as permission to deploy, change production data, or begin a Telos Run.
 - Do not require approval to create a draft SPEC later; `$spec` handles that user decision.
+- Create a new PRD when the change has a different user problem, domain responsibility, or independently deliverable outcome. Do not create a new PRD for a policy, condition, or scope revision of the same initiative.
 - Keep the default review output short. The PRD is the detailed record.
 - Write for a developer reviewing the document. Put the purpose, proposed decision, and development scope before supporting detail.
 - Prefer tables and bullet lists. Give one conclusion per sentence and use short, direct sentences.
