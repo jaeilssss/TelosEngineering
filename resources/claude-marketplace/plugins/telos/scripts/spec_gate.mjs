@@ -60,7 +60,10 @@ const activePath = join(workspace, "active");
 const slug = existsSync(activePath) ? readFileSync(activePath, "utf8").trim() : "";
 if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) emit("spec-first: Telos active state must contain the active Feature SPEC slug. Start a run with `telos run start --spec <slug>`. ");
 else {
-  const specPath = join(workspace, "specs", slug, "SPEC.md");
+  const specDirectory = join(workspace, "specs", slug);
+  const preferredSpecPath = join(specDirectory, `${slug}.spec.md`);
+  const legacySpecPath = join(specDirectory, "SPEC.md");
+  const specPath = existsSync(preferredSpecPath) || !existsSync(legacySpecPath) ? preferredSpecPath : legacySpecPath;
   if (!existsSync(specPath)) emit(`spec-first: active Feature SPEC is missing: ${specPath}`);
   else {
     const text = readFileSync(specPath, "utf8");

@@ -1,5 +1,5 @@
 <!--
-  SPEC.md template. Fill this through $spec before a Telos run.
+  Feature SPEC template. New files use <slug>.spec.md. Fill this through $spec before a Telos run.
   All sections should be concrete before status becomes frozen.
 -->
 

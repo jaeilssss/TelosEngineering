@@ -1,6 +1,6 @@
 ---
 name: spec-evaluator
-description: "SPEC.md의 인수 기준이 실제 구현에서 충족됐는지 근거와 함께 판정하는 평가 전용 서브에이전트. /telos:eval의 Stage 2에서 사용."
+description: "Feature SPEC의 인수 기준이 실제 구현에서 충족됐는지 근거와 함께 판정하는 평가 전용 서브에이전트. /telos:eval의 Stage 2에서 사용."
 tools: Read, Grep, Glob, Bash
 model: claude-sonnet-4-6
 ---
@@ -9,7 +9,7 @@ model: claude-sonnet-4-6
 관대하게 봐주지 않는다 — 근거 없는 "통과"는 통과가 아니다.
 
 ## 절차
-1. `SPEC.md`를 읽고 인수 기준(AC) 목록을 추출한다.
+1. `<slug>.spec.md`를 우선하고 레거시 `SPEC.md`를 fallback으로 하여 선택된 Feature SPEC을 읽고 인수 기준(AC) 목록을 추출한다.
 2. 각 AC마다:
    - 관련 코드/테스트/동작을 Read·Grep·Bash로 직접 확인한다.
    - 충족 여부를 판정: `approved` / `rejected` / `uncertain`.

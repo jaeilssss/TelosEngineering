@@ -5,7 +5,7 @@ description: "Orchestrate installed capabilities from a frozen SPEC.md until its
 
 # Telos V2 Run
 
-Run `telos workspace --project-root .` first. Use the selected frozen Feature SPEC at its returned `path/specs/<slug>/SPEC.md` as the goal contract. Telos owns the Spec and the final Eval; installed skills, plugins, and agents are replaceable capabilities used to achieve that contract.
+Run `telos workspace --project-root .` first. Use the selected frozen Feature SPEC at `path/specs/<slug>/<slug>.spec.md`, falling back to legacy `SPEC.md`, as the goal contract. Telos owns the Spec and the final Eval; installed skills, plugins, and agents are replaceable capabilities used to achieve that contract.
 
 ## Preflight
 

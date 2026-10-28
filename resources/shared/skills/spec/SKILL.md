@@ -5,7 +5,7 @@ description: "Create or refine a SPEC.md contract before implementation. Use whe
 
 # Spec Interview
 
-Do not write implementation code while using this skill. Run `telos workspace --project-root .` first and create the Feature SPEC at its returned `path/specs/<slug>/SPEC.md`.
+Do not write implementation code while using this skill. Run `telos workspace --project-root .` first and create a new Feature SPEC at its returned `path/specs/<slug>/<slug>.spec.md`. When reading an existing SPEC, use `<slug>.spec.md` first and fall back to legacy `SPEC.md` in the same directory.
 
 Treat this skill as the spec orchestrator. Keep the user questioning loop in the main session by default. Use a subagent only for narrow, high-noise exploration that can be returned as a small index, such as a terminology scan in a large repository, and still use the ambiguity-check subagent before freezing.
 
@@ -15,7 +15,7 @@ Treat the text after `$spec` as the initial task input.
 
 1. Before the main workflow, run `telos update-status codex --project-root .` in Codex or `telos update-status claude --project-root .` in Claude Code when the CLI is available. If it prints a message, show that update recommendation before continuing.
 2. If the workspace has no `.telos/project.yml`, run `telos init --project-root .`. Show the complete generated configuration and inferred verification command, or `verify: []`, before continuing.
-3. If the user references a Discovery PRD, read its `PRD.md` before asking questions. A draft PRD does not block SPEC creation: tell the user its status and ask whether to continue from the draft. Record the PRD path and status in the resulting SPEC. Treat candidates marked `REUSE` with development scope `EXCLUDE` as already satisfied; do not create Feature SPECs for them. For `MODIFY`, create SPECs only for the behavior recorded in `Remaining change`. When the PRD revision changes an existing candidate, follow **SPEC Change Handling** below.
+3. If the user references a Discovery PRD, read its `<slug>.prd.md`, falling back to legacy `PRD.md` in the same directory, before asking questions. A draft PRD does not block SPEC creation: tell the user its status and ask whether to continue from the draft. Record the PRD path and status in the resulting SPEC. Treat candidates marked `REUSE` with development scope `EXCLUDE` as already satisfied; do not create Feature SPECs for them. For `MODIFY`, create SPECs only for the behavior recorded in `Remaining change`. When the PRD revision changes an existing candidate, follow **SPEC Change Handling** below.
 4. When a PRD has multiple development candidates, first show a compact SPEC map with each candidate's responsibility, dependency, question category, and readiness. One PRD may produce one or more Feature SPECs; split distinct domain responsibilities when they can be delivered and verified independently. A feature crossing UI and API layers alone does not require separate SPECs.
 5. Ask 1-3 focused question groups at a time. For one SPEC, ask only its unresolved questions. For multiple SPECs, classify questions as:
    - **Common blocking decisions**: one answer affects multiple SPECs. Ask these together before creating affected frozen SPECs.
@@ -52,7 +52,7 @@ Treat the text after `$spec` as the initial task input.
 
 ## PRD Traceability
 
-When a SPEC is created from a local PRD, add or update a row in that PRD's `Related SPECs` table after saving the SPEC, including drafts. Create the section if it is absent. Each row contains a Markdown link labeled with the SPEC's feature name and a short description of its responsibility. Compute the link relative to the PRD's directory; for `.telos/discoveries/<slug>/PRD.md`, a typical target is `../../specs/<spec-slug>/SPEC.md`.
+When a SPEC is created from a local PRD, add or update a row in that PRD's `Related SPECs` table after saving the SPEC, including drafts. Create the section if it is absent. Each row contains a Markdown link labeled with the SPEC's feature name and a short description of its responsibility. Compute the link relative to the PRD's directory; for `.telos/discoveries/<slug>/<slug>.prd.md`, a typical target is `../../specs/<spec-slug>/<spec-slug>.spec.md`. Do not rewrite an existing legacy `SPEC.md` link unless that row is otherwise being updated for a real change.
 
 Match existing rows by their resolved target path and update them instead of adding duplicates. Preserve other rows, PRD requirements, and approval status. Register only files actually created, not planned candidates. If no source PRD was used, skip this step without creating a PRD.
 
