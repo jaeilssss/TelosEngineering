@@ -620,6 +620,7 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   const discover = readFileSync(join(shared, "discover", "SKILL.md"), "utf8");
   const prdTemplate = readFileSync(join(shared, "discover", "assets", "PRD.template.md"), "utf8");
   const spec = readFileSync(join(shared, "spec", "SKILL.md"), "utf8");
+  const prdWorkflow = readFileSync(join(shared, "spec", "references", "prd-workflow.md"), "utf8");
   const run = readFileSync(join(shared, "run", "SKILL.md"), "utf8");
   const evalSkill = readFileSync(join(shared, "eval", "SKILL.md"), "utf8");
   const review = readFileSync(join(shared, "review", "SKILL.md"), "utf8");
@@ -643,9 +644,17 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(spec, /Common blocking decisions/); assert.match(spec, /Per-SPEC blocking questions/); assert.match(spec, /Non-blocking questions/); assert.match(spec, /ready SPECs/); assert.match(spec, /distinct domain responsibilities/);
   assert.match(spec, /Write for the developer who will implement and review the SPEC/);
   assert.match(spec, /one testable requirement per sentence/);
-  assert.match(spec, /PRD Coverage Review/); assert.match(spec, /intentionally deferred/); assert.match(spec, /duplicate implementation ownership/);
-  assert.match(spec, /not call an explicitly unrequested candidate missing/);
-  assert.match(spec, /SPEC Change Handling/); assert.match(spec, /Run status is `complete`/); assert.match(spec, /stored SPEC hash would no longer match/);
+  assert.match(spec, /AC count.*2 or fewer.*expected change surface.*3 or fewer.*no source PRD/s);
+  assert.match(spec, /inline ambiguity check/); assert.match(spec, /Ambiguity <= 0\.2/);
+  assert.match(spec, /one-line notice/); assert.match(spec, /classification is uncertain.*heavy path/s);
+  assert.match(spec, /source PRD always forces the heavy path/);
+  assert.match(spec, /references\/prd-workflow\.md/);
+  assert.doesNotMatch(spec, /^## PRD Traceability/m); assert.doesNotMatch(spec, /^## SPEC Change Handling/m); assert.doesNotMatch(spec, /^## PRD Coverage Review/m);
+  assert.match(prdWorkflow, /^## PRD Traceability/m); assert.match(prdWorkflow, /^## SPEC Change Handling/m); assert.match(prdWorkflow, /^## PRD Coverage Review/m);
+  assert.match(prdWorkflow, /covered.*intentionally deferred.*needs review/s); assert.match(prdWorkflow, /A SPEC that calls or depends on another SPEC's capability is a valid dependency, not a duplicate/);
+  assert.ok(prdWorkflow.split(/\s+/).length >= 500);
+  assert.match(prdWorkflow, /not call an explicitly unrequested candidate missing/);
+  assert.match(prdWorkflow, /Run status is `complete`/); assert.match(prdWorkflow, /stored SPEC hash would no longer match/);
   assert.match(spec, /If the workspace has no `.telos\/project.yml`, run `telos init --project-root \.`/);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
   const promptText = [discover, run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");
