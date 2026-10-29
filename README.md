@@ -71,8 +71,8 @@ If the plugin still shows an earlier version, use `/plugin` to verify that `telo
 discover → spec → run → eval
 ```
 
-1. `$discover` / `/telos:discover` turns a planning document into a reviewable technical PRD at `.telos/discoveries/<slug>/PRD.md` without changing code.
-2. `$spec` / `/telos:spec` creates one or more frozen Feature SPECs at `.telos/specs/<slug>/SPEC.md` with measurable acceptance criteria.
+1. `$discover` / `/telos:discover` turns a planning document into a reviewable technical PRD at `.telos/discoveries/<slug>/<slug>.prd.md` without changing code.
+2. `$spec` / `/telos:spec` creates one or more frozen Feature SPECs at `.telos/specs/<slug>/<slug>.spec.md` with measurable acceptance criteria.
 3. `$run` / `/telos:run` manages the implementation → test → evaluation loop.
 4. `$eval` / `/telos:eval` approves, rejects, or marks the result uncertain using evidence from the frozen Spec.
 
@@ -91,7 +91,7 @@ When a policy or scope changes within the same initiative, `$discover` can revis
 Keep feature-specific decisions in their SPEC and decisions that apply to multiple SPECs in the PRD's `Shared Decisions`. View the linked SPEC progress and next action with:
 
 ```bash
-telos prd status --prd .telos/discoveries/order-flow/PRD.md --project-root .
+telos prd status --prd .telos/discoveries/order-flow/order-flow.prd.md --project-root .
 ```
 
 Use `--spec <slug>` to inspect only one linked SPEC.
@@ -135,7 +135,7 @@ For a scoped criterion, provide evidence for every scope, then validate its pres
 
 ```bash
 telos verify --changed --project-root .
-telos evidence check --spec .telos/specs/payment-flow/SPEC.md --project-root .
+telos evidence check --spec .telos/specs/payment-flow/payment-flow.spec.md --project-root .
 ```
 
 Projects can make mechanical verification deterministic with a committed `.telos/project.yml`. `telos verify --changed` combines tracked changes from `HEAD` with untracked, non-ignored files, selects every matching module, then runs only that module's declared commands. An empty `verify` list requires manual verification and cannot pass automatically.

@@ -5,10 +5,10 @@
 
 ## 절대 규칙
 
-1. **스펙 없이 구현 금지.** 새 기능/모듈 구현 전, 해당 **프로젝트 루트**에 `SPEC.md`가
-   있고 목표·제약·인수 기준(acceptance criteria)이 구체적이어야 한다. 없거나 모호하면
+1. **스펙 없이 구현 금지.** 새 기능/모듈 구현 전, 해당 **프로젝트 루트**의 Feature SPEC
+   (`.telos/specs/<slug>/<slug>.spec.md`, 레거시 `SPEC.md` fallback)에 목표·제약·인수 기준(acceptance criteria)이 구체적이어야 한다. 없거나 모호하면
    코드를 쓰지 말고 `/telos:spec` 을 먼저 돌리도록 사용자에게 요청한다.
-2. **항상 SPEC.md를 먼저 읽는다.** 구현·수정·평가 시작 시 프로젝트의 `SPEC.md` 를 읽고
+2. **항상 Feature SPEC을 먼저 읽는다.** 구현·수정·평가 시작 시 새 파일명을 우선하고 레거시 `SPEC.md`를 fallback으로 읽어
    그 인수 기준을 기준점으로 삼는다.
 3. **추측하지 말고 질문한다.** 모호함을 임의의 가정으로 메우지 않는다.
 
@@ -18,7 +18,7 @@
 ## 워크플로우 (우로보로스 4단계의 경량 버전)
 
 ```
-/telos:spec   →  오케스트레이터가 현재 세션에서 질문 루프 진행 → ambiguity evaluator 통과 시 SPEC.md(계약) 생성
+/telos:spec   →  오케스트레이터가 현재 세션에서 질문 루프 진행 → ambiguity evaluator 통과 시 Feature SPEC(계약) 생성
 /telos:run    →  현재 Spec·저장소·실패 근거에 맞는 설치된 Capability를 발견·선택·실행
 /telos:eval   →  3단계 게이트 (Mechanical → 조건부 semantic evaluator → (선택) Consensus)
 반복    →  실패한 인수 기준을 근거로 Capability를 다시 라우팅하고 루프

@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileS
 import { join } from "node:path";
 import { VerificationAttempt, worktreeFingerprint, worktreePathDigests } from "./verification.js";
 import { workspaceFor } from "./storage.js";
+import { featureSpecPath } from "./document-paths.js";
 
 export type EvalStatus = "approved" | "rejected" | "uncertain" | "blocked";
 export interface VerificationSnapshot { at: string; specHash: string; iteration: number; fingerprint: string; result: VerificationAttempt; pathDigests?: Record<string, string>; }
@@ -20,7 +21,7 @@ export interface RunState {
 const now = () => new Date().toISOString();
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const pathFor = (root: string, slug: string) => join(workspaceFor(root).path, "runs", `${slug}.json`);
-const specPathFor = (root: string, slug: string) => join(workspaceFor(root).path, "specs", slug, "SPEC.md");
+const specPathFor = (root: string, slug: string) => featureSpecPath(root, slug);
 const reportPathFor = (root: string, slug: string, iteration: number) => join(workspaceFor(root).path, "evals", slug, `${iteration}.md`);
 const activePathFor = (root: string) => join(workspaceFor(root).path, "active");
 export class RunStateError extends Error {}

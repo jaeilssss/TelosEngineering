@@ -71,8 +71,8 @@ telos update all
 discover → spec → run → eval
 ```
 
-1. `$discover` / `/telos:discover`는 기획서를 코드 변경 없이 검토 가능한 기술 PRD `.telos/discoveries/<slug>/PRD.md`로 만듭니다.
-2. `$spec` / `/telos:spec`은 목표를 측정 가능한 인수 기준이 담긴 하나 이상의 `.telos/specs/<slug>/SPEC.md`로 만듭니다.
+1. `$discover` / `/telos:discover`는 기획서를 코드 변경 없이 검토 가능한 기술 PRD `.telos/discoveries/<slug>/<slug>.prd.md`로 만듭니다.
+2. `$spec` / `/telos:spec`은 목표를 측정 가능한 인수 기준이 담긴 하나 이상의 `.telos/specs/<slug>/<slug>.spec.md`로 만듭니다.
 3. `$run` / `/telos:run`은 구현 → 테스트 → 평가 Loop를 관리합니다.
 4. `$eval` / `/telos:eval`은 frozen Spec을 기준으로 근거를 확인해 approved, rejected, uncertain을 판정합니다.
 
@@ -91,7 +91,7 @@ PRD에서 만든 SPEC은 PRD의 `Related SPECs` 표에 연결됩니다. `$spec`�
 SPEC별 결정은 해당 SPEC에, 여러 SPEC에 적용되는 결정은 PRD의 `Shared Decisions`에 남깁니다. PRD의 연결된 SPEC 진행 현황과 다음 행동은 다음 명령으로 확인합니다.
 
 ```bash
-telos prd status --prd .telos/discoveries/order-flow/PRD.md --project-root .
+telos prd status --prd .telos/discoveries/order-flow/order-flow.prd.md --project-root .
 ```
 
 특정 SPEC만 확인하려면 `--spec <slug>`를 함께 사용합니다.
@@ -137,7 +137,7 @@ scope가 있는 AC에는 모든 scope별 증거를 남기고 존재 여부를 �
 
 ```bash
 telos verify --changed --project-root .
-telos evidence check --spec .telos/specs/payment-flow/SPEC.md --project-root .
+telos evidence check --spec .telos/specs/payment-flow/payment-flow.spec.md --project-root .
 ```
 
 ```bash

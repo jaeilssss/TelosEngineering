@@ -11,13 +11,16 @@ import { historySince } from "./history.js";
 import { prdStatus } from "./prd-status.js";
 import { install, uninstall } from "./installers.js";
 import { legacyWorkspacePath, workspaceFor } from "./storage.js";
+import { featureSpecPath, featureSpecPaths } from "./document-paths.js";
 
 process.env.TELOS_HOME = join(tmpdir(), "telos-test-home");
 
-function featureSpec(root: string, slug: string, content = "# Feature SPEC\n") {
-  const path = join(root, ".telos", "specs", slug, "SPEC.md");
+function featureSpec(root: string, slug: string, content = "# Feature SPEC\n", format: "new" | "legacy" = "new") {
+  const paths = featureSpecPaths(root, slug);
+  const path = format === "new" ? paths.preferred : paths.legacy;
   mkdirSync(join(path, ".."), { recursive: true });
   writeFileSync(path, content);
+  return path;
 }
 
 function verifiedRun(root: string, slug: string, maxIterations = 2) {
@@ -73,17 +76,39 @@ test("copies a legacy global workspace into the project on first use", () => {
   assert.equal(existsSync(legacy), true);
 });
 
+test("prefers searchable Feature SPEC filenames and falls back to legacy files", () => {
+  const root = mkdtempSync(join(tmpdir(), "telos-document-paths-"));
+  const legacy = featureSpec(root, "legacy-only", "legacy", "legacy");
+  assert.equal(featureSpecPath(root, "legacy-only"), legacy);
+  const newPath = featureSpec(root, "mixed", "new");
+  const oldPath = featureSpec(root, "mixed", "legacy", "legacy");
+  assert.equal(featureSpecPath(root, "mixed"), newPath);
+  assert.equal(readFileSync(featureSpecPath(root, "mixed"), "utf8"), "new");
+  assert.equal(existsSync(oldPath), true);
+  assert.equal(featureSpecPaths(root, "created").preferred, join(root, ".telos", "specs", "created", "created.spec.md"));
+});
+
+test("keeps Run and Eval state paths unchanged for a legacy Feature SPEC", () => {
+  const root = repository({ "README.md": "initial" }, "modules:\n  - name: all\n    paths: [\"**\"]\n    verify: [\"node -e \\\"process.exit(0)\\\"\"]\n");
+  featureSpec(root, "legacy-run", "Status: frozen\n", "legacy");
+  startRun(root, "legacy-run", [], 1);
+  assert.equal(existsSync(join(root, ".telos", "runs", "legacy-run.json")), true);
+  storeVerificationSnapshot(root, verifyChanged(root));
+  recordResult(root, "legacy-run", "approved", "complete");
+  assert.equal(existsSync(join(root, ".telos", "evals", "legacy-run", "1.md")), true);
+});
+
 test("reports PRD-linked SPEC progress and next actions", () => {
   const root = repository({ "README.md": "initial" });
-  const prd = join(root, ".telos", "discoveries", "orders", "PRD.md");
+  const prd = join(root, ".telos", "discoveries", "orders", "orders.prd.md");
   mkdirSync(join(prd, ".."), { recursive: true });
-  featureSpec(root, "draft-order", "Status: draft\n"); featureSpec(root, "frozen-order", "Status: frozen\n"); featureSpec(root, "done-order", "Status: frozen\n");
+  featureSpec(root, "draft-order", "Status: draft\n"); featureSpec(root, "frozen-order", "Status: frozen\n"); featureSpec(root, "done-order", "Status: frozen\n"); featureSpec(root, "legacy-order", "Status: frozen\n", "legacy");
   mkdirSync(join(root, ".telos", "runs"), { recursive: true });
   writeFileSync(join(root, ".telos", "runs", "done-order.json"), JSON.stringify({ status: "complete" }));
-  writeFileSync(prd, "# PRD\n\n## 9. Related SPECs\n\n| SPEC | Responsibility |\n|---|---|\n| [Draft](../../specs/draft-order/SPEC.md) | Draft work |\n| [Frozen](../../specs/frozen-order/SPEC.md) | Frozen work |\n| [Done](../../specs/done-order/SPEC.md) | Done work |\n| [Missing](../../specs/missing-order/SPEC.md) | Missing work |\n");
-  assert.deepEqual(prdStatus(root, ".telos/discoveries/orders/PRD.md").specs.map((spec) => [spec.status, spec.nextAction]), [["draft", "resolve open questions"], ["frozen", "start run"], ["complete", "none"], ["missing", "fix link or create SPEC"]]);
+  writeFileSync(prd, "# PRD\n\n## 9. Related SPECs\n\n| SPEC | Responsibility |\n|---|---|\n| [Draft](../../specs/draft-order/draft-order.spec.md) | Draft work |\n| [Frozen](../../specs/frozen-order/frozen-order.spec.md) | Frozen work |\n| [Done](../../specs/done-order/done-order.spec.md) | Done work |\n| [Legacy](../../specs/legacy-order/SPEC.md) | Legacy work |\n| [Missing](../../specs/missing-order/missing-order.spec.md) | Missing work |\n");
+  assert.deepEqual(prdStatus(root, ".telos/discoveries/orders/orders.prd.md").specs.map((spec) => [spec.status, spec.nextAction]), [["draft", "resolve open questions"], ["frozen", "start run"], ["complete", "none"], ["frozen", "start run"], ["missing", "fix link or create SPEC"]]);
   writeFileSync(join(root, ".telos", "runs", "frozen-order.json"), JSON.stringify({ status: "rejected", iteration: 5, maxIterations: 5 }));
-  assert.deepEqual(prdStatus(root, ".telos/discoveries/orders/PRD.md", ["frozen-order"]).specs.map((spec) => [spec.status, spec.nextAction]), [["rejected", "request direction and extend run"]]);
+  assert.deepEqual(prdStatus(root, ".telos/discoveries/orders/orders.prd.md", ["frozen-order"]).specs.map((spec) => [spec.status, spec.nextAction]), [["rejected", "request direction and extend run"]]);
 });
 
 test("supersedes a non-complete Run before revising its SPEC", () => {
@@ -93,7 +118,7 @@ test("supersedes a non-complete Run before revising its SPEC", () => {
   assert.equal(existsSync(join(root, ".telos", "runs", "revised-feature.json")), false);
   assert.equal(existsSync(join(root, ".telos", "runs", "archive")), true);
   assert.equal(existsSync(join(root, ".telos", "active")), false);
-  writeFileSync(join(root, ".telos", "specs", "revised-feature", "SPEC.md"), "Status: frozen\nRevision: 2\n");
+  writeFileSync(featureSpecPath(root, "revised-feature"), "Status: frozen\nRevision: 2\n");
   assert.equal(startRun(root, "revised-feature", [], 2).iteration, 1);
 });
 
@@ -106,7 +131,7 @@ test("never overwrites an active running slug", () => {
 
 test("blocks state transitions when the Feature SPEC changes", () => {
   const root = mkdtempSync(join(tmpdir(), "telos-")); featureSpec(root, "changed-spec", "original");
-  startRun(root, "changed-spec", [], 2); writeFileSync(join(root, ".telos", "specs", "changed-spec", "SPEC.md"), "changed");
+  startRun(root, "changed-spec", [], 2); writeFileSync(featureSpecPath(root, "changed-spec"), "changed");
   assert.throws(() => recordResult(root, "changed-spec", "rejected", "AC1 | failed | npm test | Stage1: yes"), /SPEC changed/);
   const state = loadRunState(root, "changed-spec")!; state.status = "rejected"; writeFileSync(join(root, ".telos", "runs", "changed-spec.json"), JSON.stringify(state));
   assert.throws(() => retryRun(root, "changed-spec", []), /SPEC changed/);
@@ -135,10 +160,13 @@ test("records the active Feature SPEC and both hooks gate matching module paths"
   assert.equal(readFileSync(join(root, ".telos", "active"), "utf8"), "hook-feature\n");
   const input = JSON.stringify({ cwd: root, tool_input: { file_path: "src/App.kt" } });
   for (const script of [join(process.cwd(), "resources", "codex", "telos", "scripts", "spec_gate.mjs"), join(process.cwd(), "resources", "claude-marketplace", "plugins", "telos", "scripts", "spec_gate.mjs")]) assert.equal(execFileSync(process.execPath, [script], { input, encoding: "utf8" }), "");
-  writeFileSync(join(root, ".telos", "specs", "hook-feature", "SPEC.md"), "Status: draft\nTest strategy: test-after\n");
+  writeFileSync(featureSpecPath(root, "hook-feature"), "Status: draft\nTest strategy: test-after\n");
   for (const script of [join(process.cwd(), "resources", "codex", "telos", "scripts", "spec_gate.mjs"), join(process.cwd(), "resources", "claude-marketplace", "plugins", "telos", "scripts", "spec_gate.mjs")]) assert.match(execFileSync(process.execPath, [script], { input, encoding: "utf8" }), /not frozen/);
   const unrelated = JSON.stringify({ cwd: root, tool_input: { file_path: "docs/readme.md" } });
   for (const script of [join(process.cwd(), "resources", "codex", "telos", "scripts", "spec_gate.mjs"), join(process.cwd(), "resources", "claude-marketplace", "plugins", "telos", "scripts", "spec_gate.mjs")]) assert.equal(execFileSync(process.execPath, [script], { input: unrelated, encoding: "utf8" }), "");
+  featureSpec(root, "legacy-hook", "Status: frozen\nTest strategy: test-after\n", "legacy");
+  writeFileSync(join(root, ".telos", "active"), "legacy-hook\n");
+  for (const script of [join(process.cwd(), "resources", "codex", "telos", "scripts", "spec_gate.mjs"), join(process.cwd(), "resources", "claude-marketplace", "plugins", "telos", "scripts", "spec_gate.mjs")]) assert.equal(execFileSync(process.execPath, [script], { input, encoding: "utf8" }), "");
 });
 
 test("hooks report project configuration problems once per session", () => {
@@ -592,6 +620,7 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   const discover = readFileSync(join(shared, "discover", "SKILL.md"), "utf8");
   const prdTemplate = readFileSync(join(shared, "discover", "assets", "PRD.template.md"), "utf8");
   const spec = readFileSync(join(shared, "spec", "SKILL.md"), "utf8");
+  const prdWorkflow = readFileSync(join(shared, "spec", "references", "prd-workflow.md"), "utf8");
   const run = readFileSync(join(shared, "run", "SKILL.md"), "utf8");
   const evalSkill = readFileSync(join(shared, "eval", "SKILL.md"), "utf8");
   const review = readFileSync(join(shared, "review", "SKILL.md"), "utf8");
@@ -601,7 +630,7 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(run, /End\r?\nthe response only when the final result is `approved`, `uncertain`, `blocked`,\r?\nor the CLI iteration limit has been reached/);
   assert.match(evalSkill, /Run `telos verify --changed --project-root \.` exactly once/); assert.match(evalSkill, /A `no-op` result continues to semantic evaluation/); assert.match(evalSkill, /Ensure `.telos\/project.yml` exists/); assert.match(evalSkill, /another model or profile/);
   assert.match(discover, /Do not modify implementation code, tests, dependencies, or project configuration/);
-  assert.match(discover, /`path\/discoveries\/<slug>\/PRD\.md`/);
+  assert.match(discover, /`path\/discoveries\/<slug>\/<slug>\.prd\.md`/);
   assert.match(discover, /`Status: draft`/); assert.match(discover, /`Status: approved`/);
   assert.match(discover, /REUSE.*excluded from development and Feature SPEC candidates/s);
   assert.match(discover, /Write for a developer reviewing the document/);
@@ -611,12 +640,21 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(prdTemplate, /Writing rules: put the decision before its evidence/);
   assert.match(prdTemplate, /Revision History/);
   assert.match(spec, /A draft PRD does not block SPEC creation/); assert.match(spec, /one or more Feature SPECs/);
+  assert.match(spec, /`path\/specs\/<slug>\/<slug>\.spec\.md`/); assert.match(spec, /fall back to legacy `SPEC\.md`/);
   assert.match(spec, /Common blocking decisions/); assert.match(spec, /Per-SPEC blocking questions/); assert.match(spec, /Non-blocking questions/); assert.match(spec, /ready SPECs/); assert.match(spec, /distinct domain responsibilities/);
   assert.match(spec, /Write for the developer who will implement and review the SPEC/);
   assert.match(spec, /one testable requirement per sentence/);
-  assert.match(spec, /PRD Coverage Review/); assert.match(spec, /intentionally deferred/); assert.match(spec, /duplicate implementation ownership/);
-  assert.match(spec, /not call an explicitly unrequested candidate missing/);
-  assert.match(spec, /SPEC Change Handling/); assert.match(spec, /Run status is `complete`/); assert.match(spec, /stored SPEC hash would no longer match/);
+  assert.match(spec, /AC count.*2 or fewer.*expected change surface.*3 or fewer.*no source PRD/s);
+  assert.match(spec, /inline ambiguity check/); assert.match(spec, /Ambiguity <= 0\.2/);
+  assert.match(spec, /one-line notice/); assert.match(spec, /classification is uncertain.*heavy path/s);
+  assert.match(spec, /source PRD always forces the heavy path/);
+  assert.match(spec, /references\/prd-workflow\.md/);
+  assert.doesNotMatch(spec, /^## PRD Traceability/m); assert.doesNotMatch(spec, /^## SPEC Change Handling/m); assert.doesNotMatch(spec, /^## PRD Coverage Review/m);
+  assert.match(prdWorkflow, /^## PRD Traceability/m); assert.match(prdWorkflow, /^## SPEC Change Handling/m); assert.match(prdWorkflow, /^## PRD Coverage Review/m);
+  assert.match(prdWorkflow, /covered.*intentionally deferred.*needs review/s); assert.match(prdWorkflow, /A SPEC that calls or depends on another SPEC's capability is a valid dependency, not a duplicate/);
+  assert.ok(prdWorkflow.split(/\s+/).length >= 500);
+  assert.match(prdWorkflow, /not call an explicitly unrequested candidate missing/);
+  assert.match(prdWorkflow, /Run status is `complete`/); assert.match(prdWorkflow, /stored SPEC hash would no longer match/);
   assert.match(spec, /If the workspace has no `.telos\/project.yml`, run `telos init --project-root \.`/);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
   const promptText = [discover, run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");

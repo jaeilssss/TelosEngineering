@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { RunStateError } from "./run-state.js";
 import { workspaceFor } from "./storage.js";
+import { featureSpecSlug } from "./document-paths.js";
 
 export interface PrdSpecStatus {
   name: string;
@@ -26,11 +27,6 @@ function relatedSpecs(text: string): Array<{ name: string; target: string }> {
 function specStatus(text: string): "draft" | "frozen" | "unknown" {
   const status = text.match(/^Status:\s*`?(draft|frozen)`?\s*$/m)?.[1];
   return status === "draft" || status === "frozen" ? status : "unknown";
-}
-
-function slugFor(workspace: string, specPath: string): string | undefined {
-  const segments = relative(workspace, specPath).split(/[\\/]/);
-  return segments.length === 3 && segments[0] === "specs" && segments[2] === "SPEC.md" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(segments[1]) ? segments[1] : undefined;
 }
 
 function runFor(root: string, slug: string): RunInfo | undefined {
@@ -59,7 +55,7 @@ export function prdStatus(root: string, prd: string, specSlugs: string[] = []): 
   if (!existsSync(path)) throw new RunStateError(`PRD is missing: ${path}`);
   const specs = relatedSpecs(readFileSync(path, "utf8")).map(({ name, target }) => {
     const specPath = resolve(dirname(path), target);
-    const slug = slugFor(workspaceFor(root).path, specPath);
+    const slug = featureSpecSlug(workspaceFor(root).path, specPath);
     if (specSlugs.length && (!slug || !specSlugs.includes(slug))) return undefined;
     if (!existsSync(specPath)) return { name, path: specPath, status: "missing" as const, nextAction: nextAction("missing") };
     const documentStatus = specStatus(readFileSync(specPath, "utf8"));
