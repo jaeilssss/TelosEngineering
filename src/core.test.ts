@@ -620,6 +620,9 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   const discover = readFileSync(join(shared, "discover", "SKILL.md"), "utf8");
   const prdTemplate = readFileSync(join(shared, "discover", "assets", "PRD.template.md"), "utf8");
   const spec = readFileSync(join(shared, "spec", "SKILL.md"), "utf8");
+  const distributedSpec = readFileSync(join(process.cwd(), "dist", "resources", "codex", "telos", "skills", "spec", "SKILL.md"), "utf8");
+  const specTemplate = readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8");
+  const distributedSpecTemplate = readFileSync(join(process.cwd(), "dist", "resources", "codex", "telos", "skills", "spec", "assets", "SPEC.template.md"), "utf8");
   const prdWorkflow = readFileSync(join(shared, "spec", "references", "prd-workflow.md"), "utf8");
   const run = readFileSync(join(shared, "run", "SKILL.md"), "utf8");
   const distributedRun = readFileSync(join(process.cwd(), "dist", "resources", "codex", "telos", "skills", "run", "SKILL.md"), "utf8");
@@ -684,7 +687,17 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(prdWorkflow, /not call an explicitly unrequested candidate missing/);
   assert.match(prdWorkflow, /Run status is `complete`/); assert.match(prdWorkflow, /stored SPEC hash would no longer match/);
   assert.match(spec, /If the workspace has no `.telos\/project.yml`, run `telos init --project-root \.`/);
+  assert.match(spec, /run an edge-case discovery pass/);
+  assert.match(spec, /observable behavior, policy, safety, data integrity, or verification/);
+  assert.match(spec, /approved PRD decisions, repository code, tests, and documentation/);
+  assert.match(spec, /ask it through the existing 1-3 focused question groups; do not invent the rule/);
+  assert.match(spec, /boundary values, empty or missing input, duplicate requests, ordering or retry behavior, authorization differences, state transitions, compatibility with existing data, and external failure/);
+  assert.match(spec, /No material edge cases identified/);
+  assert.match(specTemplate, /## 8\. Edge Cases/);
+  assert.match(specTemplate, /\| Scenario \| Expected behavior \| Resolution source \| Verification \|/);
+  assert.equal(distributedSpec, spec);
+  assert.equal(distributedSpecTemplate, specTemplate);
   assert.match(review, /Never edit the Telos workspace `project.yml` directly/); assert.match(review, /Never empty a module's `verify` list/);
-  const promptText = [discover, run, evalSkill, review, spec, readFileSync(join(shared, "spec", "assets", "SPEC.template.md"), "utf8")].join("\n");
+  const promptText = [discover, run, evalSkill, review, spec, specTemplate].join("\n");
   assert.doesNotMatch(promptText, /gradlew|mvnw|npm (?:test|run)|pytest|go test|cargo test|Gradle|Maven/);
 });
