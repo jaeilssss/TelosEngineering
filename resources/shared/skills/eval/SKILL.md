@@ -19,11 +19,12 @@ Treat this skill as the evaluation orchestrator. The semantic judge should be in
 6. Compare the diff against Expected Change Surface. An unexpected file, dependency, API, or schema change is `uncertain` until the user confirms the expanded scope.
 7. Run a semantic evaluation pass for each acceptance criterion and each matching project risk check.
 8. If the user requests a lean pass, report only avoidable complexity: AC-unmapped changes, unnecessary dependencies, speculative abstractions, and dead code. It must not apply changes or replace correctness, security, or accessibility review.
-9. Report `approved`, `rejected`, or `uncertain`.
-10. Include concrete evidence: file paths, commands, test names, or observed behavior. Format every rejected handoff line as `<AC> | <missing evidence or behavior> | <how verified> | Stage1: yes|no`.
-11. If any criterion is `uncertain`, or the change is high-risk, recommend a consensus pass.
-12. If all criteria pass, update checked items in `SPEC.md` when appropriate.
-13. Feed rejected or uncertain criteria into the next `$spec` or `$run` iteration.
+9. After completing the acceptance-criteria evaluation, perform the separate Human review recommendations pass below. If it finds evidence of a defect, apply the normal Eval decision rules; do not reduce a confirmed defect to an advisory recommendation.
+10. Report `approved`, `rejected`, or `uncertain` with the recommendations.
+11. Include concrete evidence: file paths, commands, test names, or observed behavior. Format every rejected handoff line as `<AC> | <missing evidence or behavior> | <how verified> | Stage1: yes|no`.
+12. If any criterion is `uncertain`, or the change is high-risk, recommend a consensus pass.
+13. If all criteria pass, update checked items in `SPEC.md` when appropriate.
+14. Feed rejected or uncertain criteria into the next `$spec` or `$run` iteration.
 
 ## Semantic Evaluation
 
@@ -54,6 +55,34 @@ Return a compact main-session summary by default: acceptance-criteria decisions,
 
 For each acceptance criterion, ask: "What concrete behavior would falsify this?" Check the code, tests, and command output for that counterexample before approving.
 
+## Human review recommendations
+
+After successful mechanical verification and acceptance-criteria evaluation, inspect the current uncommitted Git worktree diff, including staged and unstaged changes. Use the diff as the starting point, then inspect relevant surrounding code, callers, and tests. Anchor each recommendation to a changed file and the most precise stable symbol or line range available. Do not turn pre-existing user changes into findings.
+
+Return `Human review recommended` only when an explainable risk signal warrants human judgment. Use this advisory table, ordered from highest priority to lowest. Combine multiple signals at the same location in one row.
+
+| Priority | File and symbol or line range | Matched signal | Why human review is needed | Review focus |
+|---|---|---|---|---|
+
+`critical` is the highest advisory priority and requires both a high-impact domain (for example authorization, money, entitlement, inventory, privacy, or irreversible state) and a failure-prone mechanism (for example concurrency, transaction boundaries, retries, or external side effects).
+
+Consider these signal families when they occur in changed behavior:
+
+- concurrency, async ordering, locks, queues, retries, or idempotency;
+- transactions, persistence, schema or migration changes, and cache invalidation;
+- business-policy or domain calculations, state transitions, and feature-flag behavior;
+- authentication, authorization, tenancy, or permissions;
+- money, entitlements, quotas, inventory, or other irreversible state;
+- external APIs, webhooks, message brokers, background jobs, and their timeout or duplicate-delivery behavior;
+- privacy, secrets, logging, or cryptography;
+- public APIs, CLI behavior, configuration defaults, or dependencies;
+- deletion or broad refactoring of behavior-bearing code; and
+- test-only changes around one of these risk areas.
+
+Use terms from the active SPEC together with changed public interfaces or state-changing code as optional business-rule evidence. Label a low-confidence match as `heuristic`. Do not create a recommendation from a filename, function length, or generic keyword alone. If no signal qualifies, state `No rule-based human review recommendations were found; this is not a guarantee that review is unnecessary.`
+
+Recommendations never change the Eval result, block completion, assert that a human reviewed the change, collect reviewer identity, persist acknowledgment, or require project-specific configuration. A proven defect is evaluation evidence, not an advisory finding.
+
 ## Consensus
 
 Consensus is off by default. Recommend it only for high-risk changes or any `uncertain` result.
@@ -69,6 +98,7 @@ AC1: approved - evidence: ...
 AC2: rejected - evidence: ...
 AC3: uncertain - evidence: ...
 Verification: mechanical checks pass|fail - ...
+Human review recommended: ...
 Handoff: ...
 Summary: 1/3 approved. Recommended next step: ...
 ```
