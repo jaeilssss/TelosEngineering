@@ -45,16 +45,21 @@ Test strategy:
 <!-- Use short bullets for stack, performance, security, dependencies, compatibility, and non-goals. -->
 -
 
-## 8. Out of Scope
+## 8. Edge Cases
+<!-- Record each decided material edge case. If no material case applies, write `No material edge cases identified` and the evidence considered. -->
+| Scenario | Expected behavior | Resolution source | Verification |
+|---|---|---|---|
+
+## 9. Out of Scope
 -
 
-## 9. Decisions
+## 10. Decisions
 <!-- Keep only final decisions whose rationale helps implementation or review. Put the outcome itself in the relevant Goal, Constraint, AC, or Out of Scope section. -->
 
 | Decision | Reason |
 |---|---|
 
-## 10. Open Questions
+## 11. Open Questions
 <!-- Must be empty before frozen. -->
 -
 

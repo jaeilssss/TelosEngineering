@@ -24,16 +24,20 @@ Treat the text after `$spec` as the initial task input.
 
    Do not repeat a question already answered in the PRD or another SPEC.
 6. Define ontology first: clarify the key nouns before discussing implementation.
-7. Before drafting the spec, read the project's TDD decision guidance from `AGENTS.md` when it exists. If `AGENTS.md` is absent, decide from the nature of the work: default to `TDD` for bug fixes and behavior-changing code, use `test-after` when tests are still appropriate but writing them first would be inefficient, and use `none` only for work like docs or prompt text where tests are not a meaningful fit.
-8. Decide and record `Test strategy` in the Feature SPEC as exactly one of `TDD`, `test-after`, or `none`. If you choose `none`, include the reason on the same line.
-9. Fill the goal, constraints, test strategy, expected change surface, verification plan, acceptance criteria, out-of-scope items, and open questions.
+7. Before drafting each Feature SPEC, run an edge-case discovery pass. Limit it to cases that can change observable behavior, policy, safety, data integrity, or verification. First inspect relevant approved PRD decisions, repository code, tests, and documentation. Record an evidence-backed outcome with its source. When a material expected behavior remains a business-policy decision, ask it through the existing 1-3 focused question groups; do not invent the rule. Do not ask about ordinary low-risk or already-resolved cases.
+
+   Consider boundary values, empty or missing input, duplicate requests, ordering or retry behavior, authorization differences, state transitions, compatibility with existing data, and external failure only when relevant to the candidate. Concurrency, transactions, money, privacy, migrations, and external effects are prompts to inspect relevant edge cases, not proof that every category applies. Keep a material unanswered case in Open Questions; do not freeze that SPEC.
+8. Before drafting the spec, read the project's TDD decision guidance from `AGENTS.md` when it exists. If `AGENTS.md` is absent, decide from the nature of the work: default to `TDD` for bug fixes and behavior-changing code, use `test-after` when tests are still appropriate but writing them first would be inefficient, and use `none` only for work like docs or prompt text where tests are not a meaningful fit.
+9. Decide and record `Test strategy` in the Feature SPEC as exactly one of `TDD`, `test-after`, or `none`. If you choose `none`, include the reason on the same line.
+10. Fill the goal, constraints, test strategy, expected change surface, verification plan, acceptance criteria, edge cases, out-of-scope items, and open questions.
    - Use `.telos/project.yml` `risks[]` for project-specific mechanical risks. When it declares scopes, write `[scopes: name-a, name-b]` on a multi-scope AC and add one `- Evidence [name]: ...` line per scope.
    - Expected change surface names allowed files/areas and whether dependency, API, or schema changes are permitted.
    - Verification plan uses `telos verify --changed --project-root .` for configured checks and records only additional manual checks.
    - For each new or modified API, state its one business purpose and observable outcome. Several internal steps may serve that purpose; unrelated outcomes need separate API contracts.
    - Write each resolved question's final answer into the section it changes. When the rationale remains useful for implementation or review, also record it in `Decisions`; do not copy the full interview transcript.
    - Promote a decision to the source PRD's `Shared Decisions` only when it applies to multiple Feature SPECs or candidates. Preserve the PRD approval status when recording that linkable decision.
-10. Check the size of the spec before freezing. Split it when any of these is true:
+   - Fill the `Edge Cases` table with every decided material case. For a candidate with no material cases, record `No material edge cases identified` and the evidence considered.
+11. Check the size of the spec before freezing. Split it when any of these is true:
    - more than 6 acceptance criteria
    - the work has independently deliverable business purposes or domain responsibilities with different verification plans or change surfaces
    - one iteration plausibly cannot be implemented within a single agent response
@@ -41,17 +45,17 @@ Treat the text after `$spec` as the initial task input.
    A Feature SPEC must be small enough that one iteration finishes in one response.
    When splitting, name each slug for the capability it delivers and record the
    intended order in the parent discussion, not inside a single oversized SPEC.
-11. If `Test strategy` is `TDD` or `test-after`, include an acceptance criterion that the related tests pass. If the task is a bug fix, also include an acceptance criterion requiring at least one regression test. If `Test strategy` is `none`, do not add those test criteria automatically.
-12. Challenge one important assumption with a contrary case.
-13. Create draft Feature SPECs for ready candidates in the workspace returned by `telos workspace --project-root .` using `assets/SPEC.template.md`. A draft may retain its own blocking Open Questions; create drafts for ready SPECs without waiting for unrelated blocked SPECs.
+12. If `Test strategy` is `TDD` or `test-after`, include an acceptance criterion that the related tests pass. If the task is a bug fix, also include an acceptance criterion requiring at least one regression test. If `Test strategy` is `none`, do not add those test criteria automatically.
+13. Challenge one important assumption with a contrary case.
+14. Create draft Feature SPECs for ready candidates in the workspace returned by `telos workspace --project-root .` using `assets/SPEC.template.md`. A draft may retain its own blocking Open Questions; create drafts for ready SPECs without waiting for unrelated blocked SPECs.
     After saving each SPEC with a source PRD, follow the PRD Traceability and PRD Coverage Review rules in [the PRD workflow reference](references/prd-workflow.md).
     Run `telos prd status --prd <source PRD path> --spec <created-or-revised-slug> --project-root .` and show its compact progress row. Run the unfiltered command only when the user asks for the whole PRD status.
-14. Resolve each SPEC's blocking questions and make its acceptance criteria measurable before freezing that SPEC.
-15. When the selected SPEC's Open Questions are empty, classify it automatically:
+15. Resolve each SPEC's blocking questions and make its acceptance criteria measurable before freezing that SPEC.
+16. When the selected SPEC's Open Questions are empty, classify it automatically:
    - A **light task** has all three conditions: AC count is 2 or fewer, expected change surface is 3 or fewer files, and no source PRD. Show a one-line notice that the light path is being used, then perform the inline ambiguity check in the main session using the same formula and pass threshold below.
    - A source PRD always forces the heavy path, regardless of acceptance-criteria or file count. Use the heavy path when any light-task condition is not clearly met. When classification is uncertain, use the heavy path.
    - For the **heavy path**, automatically run the low-cost ambiguity check with a subagent.
-16. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.
+17. When freezing, record `Spec baseline` as the current branch and `git rev-parse HEAD`; use `not a Git repository` when unavailable. Set status to `frozen` only when the ambiguity check passes.
 
 ## Subagent Handoff
 
