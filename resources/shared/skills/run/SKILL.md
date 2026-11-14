@@ -84,6 +84,6 @@ Maintain a compact iteration record containing changes, verification evidence, f
 
 ### Human review recommendations
 
-`$eval` is the sole producer of Human review recommendations. Include its table once in the final completion handoff when it is present. Do not rescan the diff, add rows, reclassify priorities, or duplicate the table.
+`$eval` is the sole producer of the Human review conclusion. Include that conclusion exactly once in every final completion handoff: copy either its `Human review: none` conclusion or its `Human review recommended` table. Do not rescan the diff, add rows, reclassify priorities, or duplicate the table.
 
 Report the final status, changed files, verification commands and results, acceptance-criteria evidence, and any unresolved risks. Do not claim completion until final Eval approves the frozen Spec.

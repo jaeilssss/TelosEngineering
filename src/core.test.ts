@@ -634,8 +634,9 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(run, /`rejected` is an iteration result, not a terminal run result/);
   assert.match(run, /End\r?\nthe response only when the final result is `approved`, `uncertain`, `blocked`,\r?\nor the CLI iteration limit has been reached/);
   assert.match(run, /### Human review recommendations/);
-  assert.match(run, /`\$eval` is the sole producer of Human review recommendations/);
-  assert.match(run, /Include its table once in the final completion handoff/);
+  assert.match(run, /`\$eval` is the sole producer of the Human review conclusion/);
+  assert.match(run, /Include that conclusion exactly once in every final completion handoff/);
+  assert.match(run, /copy either its `Human review: none` conclusion or its `Human review recommended` table/);
   assert.match(run, /Do not rescan the diff, add rows, reclassify priorities, or duplicate the table/);
   assert.equal(distributedRun, run);
   assert.match(evalSkill, /Run `telos verify --changed --project-root \.` exactly once/); assert.match(evalSkill, /A `no-op` result continues to semantic evaluation/); assert.match(evalSkill, /Ensure `.telos\/project.yml` exists/); assert.match(evalSkill, /another model or profile/);
@@ -643,8 +644,14 @@ test("shared skills preserve Run and Eval workflow invariants", () => {
   assert.match(evalSkill, /After successful mechanical verification and acceptance-criteria evaluation/);
   assert.match(evalSkill, /current uncommitted Git worktree diff, including staged and unstaged changes/);
   assert.match(evalSkill, /surrounding code, callers, and tests/);
-  assert.match(evalSkill, /\| Priority \| File and symbol or line range \| Matched signal \| Why human review is needed \| Review focus \|/);
-  assert.match(evalSkill, /`critical` is the highest advisory priority.*high-impact domain.*failure-prone mechanism/s);
+  assert.match(evalSkill, /Always return a `Human review` conclusion/);
+  assert.match(evalSkill, /`Human review: none`/);
+  assert.match(evalSkill, /\| Priority \| File and class\/function\/symbol or line range \| Matched signal \| Why human review is needed \| Review focus \|/);
+  assert.match(evalSkill, /`critical`: both a high-impact domain.*failure-prone mechanism/s);
+  assert.match(evalSkill, /`high`: a high-impact domain or a failure-prone mechanism/);
+  assert.match(evalSkill, /`medium`: persistence\/query behavior, a public API or response-contract change/);
+  assert.match(evalSkill, /`low`: a localized behavior or test change/);
+  assert.match(evalSkill, /must name the most precise stable class, function, method, or symbol available/);
   assert.match(evalSkill, /concurrency, async ordering.*idempotency/s);
   assert.match(evalSkill, /transactions, persistence.*cache invalidation/s);
   assert.match(evalSkill, /authentication, authorization, tenancy, or permissions/);
