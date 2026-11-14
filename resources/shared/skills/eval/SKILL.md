@@ -59,12 +59,19 @@ For each acceptance criterion, ask: "What concrete behavior would falsify this?"
 
 After successful mechanical verification and acceptance-criteria evaluation, inspect the current uncommitted Git worktree diff, including staged and unstaged changes. Use the diff as the starting point, then inspect relevant surrounding code, callers, and tests. Anchor each recommendation to a changed file and the most precise stable symbol or line range available. Do not turn pre-existing user changes into findings.
 
-Return `Human review recommended` only when an explainable risk signal warrants human judgment. Use this advisory table, ordered from highest priority to lowest. Combine multiple signals at the same location in one row.
+Always return a `Human review` conclusion. Return `Human review recommended` only when an explainable risk signal warrants human judgment; otherwise return `Human review: none` and state `No rule-based human review recommendations were found; this is not a guarantee that review is unnecessary.`
 
-| Priority | File and symbol or line range | Matched signal | Why human review is needed | Review focus |
+For recommendations, use this advisory table, ordered from highest priority to lowest. Combine multiple signals at the same location in one row. The `File and class/function/symbol or line range` column must name the most precise stable class, function, method, or symbol available; use a line range only when no such symbol exists.
+
+| Priority | File and class/function/symbol or line range | Matched signal | Why human review is needed | Review focus |
 |---|---|---|---|---|
 
-`critical` is the highest advisory priority and requires both a high-impact domain (for example authorization, money, entitlement, inventory, privacy, or irreversible state) and a failure-prone mechanism (for example concurrency, transaction boundaries, retries, or external side effects).
+Use these priorities:
+
+- `critical`: both a high-impact domain (for example authorization, money, entitlement, inventory, privacy, or irreversible state) and a failure-prone mechanism (for example concurrency, transaction boundaries, retries, or external side effects).
+- `high`: a high-impact domain or a failure-prone mechanism where an error can materially affect users, data integrity, or external side effects.
+- `medium`: persistence/query behavior, a public API or response-contract change, business-policy logic, or a broad behavior-bearing refactor that merits a focused human check but has bounded impact.
+- `low`: a localized behavior or test change with a concrete but low-impact review question.
 
 Consider these signal families when they occur in changed behavior:
 
@@ -79,7 +86,7 @@ Consider these signal families when they occur in changed behavior:
 - deletion or broad refactoring of behavior-bearing code; and
 - test-only changes around one of these risk areas.
 
-Use terms from the active SPEC together with changed public interfaces or state-changing code as optional business-rule evidence. Label a low-confidence match as `heuristic`. Do not create a recommendation from a filename, function length, or generic keyword alone. If no signal qualifies, state `No rule-based human review recommendations were found; this is not a guarantee that review is unnecessary.`
+Use terms from the active SPEC together with changed public interfaces or state-changing code as optional business-rule evidence. Label a low-confidence match as `heuristic`. Do not create a recommendation from a filename, function length, or generic keyword alone.
 
 Recommendations never change the Eval result, block completion, assert that a human reviewed the change, collect reviewer identity, persist acknowledgment, or require project-specific configuration. A proven defect is evaluation evidence, not an advisory finding.
 
@@ -98,7 +105,12 @@ AC1: approved - evidence: ...
 AC2: rejected - evidence: ...
 AC3: uncertain - evidence: ...
 Verification: mechanical checks pass|fail - ...
-Human review recommended: ...
+Human review: none - No rule-based human review recommendations were found; this is not a guarantee that review is unnecessary.
+<!-- Or, when a risk signal qualifies: -->
+Human review recommended:
+| Priority | File and class/function/symbol or line range | Matched signal | Why human review is needed | Review focus |
+|---|---|---|---|---|
+| medium | src/example.ts: ExampleService.update | public API change | A response contract changed. | Confirm backward compatibility. |
 Handoff: ...
 Summary: 1/3 approved. Recommended next step: ...
 ```
